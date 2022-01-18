@@ -1,6 +1,7 @@
 const evenColumnColor = [224, 224, 224];
 const oddColumnColor = [160, 160, 160];
 const blankCellColor = [255, 255, 255];
+var fileText = "";
 
 function genPDF() {
     var wordTable = genWordTable(getWords(), 6);
@@ -44,11 +45,25 @@ function genWordTable(words, numColumns) {
 
 function getWords() {
     var words = [];
-    var lines = document.getElementsByName('words')[0].value.split("\n");
+    if(document.getElementById("wordSourceText").checked) {
+        words = getWordsFromText(document.getElementById('wordSourceTextarea').value);
+    }
+    else if (document.getElementById("wordSourceFile").checked) {
+        words = getWordsFromText(fileText);
+    }
+    else if(document.getElementById("wordSourceURL").checked) {
+
+    }
+    return words;
+}
+
+function getWordsFromText(text) {
+    var words = [];
+    var lines = text.split("\n");
     for(var i = 0; i < lines.length; ++i) {
         var wordsOnLine = lines[i].split(" ");
         for(var j = 0; j < wordsOnLine.length; ++j) {
-            var word = wordsOnLine[j].trim();
+            var word = wordsOnLine[j].trim().replace('\r', '');
             if(word.length > 0) {
                 words.push(word);
             }
@@ -56,3 +71,11 @@ function getWords() {
     }
     return words;
 }
+
+document.getElementById('wordSourceFileInput').addEventListener('change', function() {
+    var fr = new FileReader();
+    fr.onload = function() {
+        fileText = fr.result;
+    } 
+    fr.readAsText(this.files[0]);
+})
