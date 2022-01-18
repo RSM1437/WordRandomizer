@@ -9,6 +9,7 @@ function genPDF() {
     var textColor = hexToRgb(document.getElementById('textColorOption').value);
     var fontSize = document.getElementById('fontSizeOption').value;
     var fontStyle = getFontStyle();
+    var borderWidth = document.getElementById('cellBordersOption').checked ? 0.1 : 0;
     doc.autoTable({
         body: wordTable,
         didParseCell: function (data) {
@@ -19,7 +20,7 @@ function genPDF() {
                 data.cell.styles.fillColor = blankCellColor;
             }
             data.cell.styles.textColor = textColor;
-            data.cell.styles.lineWidth = 0.25;
+            data.cell.styles.lineWidth = borderWidth;
             data.cell.styles.lineColor = [0, 0, 0];
             data.cell.styles.fontStyle = fontStyle;
             data.cell.styles.fontSize = fontSize;
