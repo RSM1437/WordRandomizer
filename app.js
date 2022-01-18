@@ -1,5 +1,5 @@
-const evenColColor = [224, 224, 224];
-const oddColColor = [160, 160, 160];
+const evenColumnColor = [224, 224, 224];
+const oddColumnColor = [160, 160, 160];
 const blankCellColor = [255, 255, 255];
 
 function genPDF() {
@@ -22,7 +22,7 @@ function genPDF() {
 }
 
 function getCellColor(colIndex) {
-    return colIndex % 2 === 0 ? evenColColor : oddColColor;
+    return colIndex % 2 === 0 ? evenColumnColor : oddColumnColor;
 }
 
 function genWordTable(words, numColumns) {
