@@ -6,6 +6,7 @@ function genPDF() {
     var numColumns = document.getElementById('numColumnsOption').value;
     var wordTable = genWordTable(getWords(), numColumns);
     var doc = new jsPDF();
+    var textColor = hexToRgb(document.getElementById('textColorOption').value);
     doc.autoTable({
         body: wordTable,
         didParseCell: function (data) {
@@ -15,6 +16,7 @@ function genPDF() {
             else {
                 data.cell.styles.fillColor = blankCellColor;
             }
+            data.cell.styles.textColor = textColor;
         },
     });
     var outputFilenameBox = document.getElementById("outputFilename");
@@ -31,7 +33,6 @@ function genPDF() {
 function getCellColor(colIndex) {
     var evenColumnColor = hexToRgb(document.getElementById('columnColor1').value);
     var oddColumnColor = hexToRgb(document.getElementById('columnColor2').value);
-    console.log(evenColumnColor);
     return colIndex % 2 === 0 ? evenColumnColor : oddColumnColor;
 }
 
