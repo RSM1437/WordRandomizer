@@ -3,8 +3,7 @@ const oddColumnColor = [160, 160, 160];
 const blankCellColor = [255, 255, 255];
 
 function genPDF() {
-    var words = getWords();
-    var wordTable = genWordTable(words, 6);
+    var wordTable = genWordTable(getWords(), 6);
     var doc = new jsPDF();
     doc.autoTable({
         body: wordTable,
@@ -16,8 +15,7 @@ function genPDF() {
                 data.cell.styles.fillColor = blankCellColor;
             }
         },
-    })
-      
+    });
     doc.save("Test.pdf");
 }
 
@@ -42,14 +40,6 @@ function genWordTable(words, numColumns) {
         wordTable.push(row);
     }
     return wordTable;
-}
-
-function genWords(numWords) {
-    var words = [];
-    for(var i = 0; i < numWords; ++i) {
-        words.push("a");
-    }
-    return words;
 }
 
 function getWords() {
