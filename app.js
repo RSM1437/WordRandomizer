@@ -16,7 +16,7 @@ function genPDF() {
                 data.cell.styles.fillColor = blankCellColor;
             }
         },
-      })
+    })
       
     doc.save("Test.pdf");
 }
