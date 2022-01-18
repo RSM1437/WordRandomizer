@@ -1,5 +1,5 @@
-const evenColColor = [40, 170, 100];
-const oddColColor = [0, 0, 0];
+const evenColColor = [224, 224, 224];
+const oddColColor = [160, 160, 160];
 const blankCellColor = [255, 255, 255];
 
 function genPDF() {
