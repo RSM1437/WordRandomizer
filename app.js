@@ -1,5 +1,3 @@
-const evenColumnColor = [224, 224, 224];
-const oddColumnColor = [160, 160, 160];
 const blankCellColor = [255, 255, 255];
 var fileText = "";
 var pageNum = 1;
@@ -31,8 +29,20 @@ function genPDF() {
 }
 
 function getCellColor(colIndex) {
+    var evenColumnColor = hexToRgb(document.getElementById('columnColor1').value);
+    var oddColumnColor = hexToRgb(document.getElementById('columnColor2').value);
+    console.log(evenColumnColor);
     return colIndex % 2 === 0 ? evenColumnColor : oddColumnColor;
 }
+
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? 
+      [parseInt(result[1], 16),
+      parseInt(result[2], 16),
+      parseInt(result[3], 16)]
+      : null;
+  }
 
 function genWordTable(words, numColumns) {
     var wordTable= [];
