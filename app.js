@@ -17,6 +17,8 @@ function genPDF() {
                 data.cell.styles.fillColor = blankCellColor;
             }
             data.cell.styles.textColor = textColor;
+            data.cell.styles.lineWidth = 0.25;
+            data.cell.styles.lineColor = [0, 0, 0];
         },
     });
     var outputFilenameBox = document.getElementById("outputFilename");
