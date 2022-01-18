@@ -12,6 +12,16 @@
     </head>
     
     <body>
+        <div>
+            Select word source: 
+            <input type="radio" id="wordSourceText" name="wordSource" value="Text" checked="checked">
+            <label for="wordSourceText">Text</label>
+            <input type="radio" id="wordSourceFile" name="wordSource" value="File">
+            <label for="wordSourceFile">File</label>
+            <input type="radio" id="wordSourceUrl" name="wordSource" value="URL">
+            <label for="wordSourceUrl">URL</label>
+        </div>
+        <br>
         <textarea name="words" id="words" rows="20" cols="40" placeholder="Type or paste words here"></textarea>
         <br>
         <a href="javascript:genPDF()">Download PDF</a>
