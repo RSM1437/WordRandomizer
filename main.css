@@ -2,6 +2,6 @@ body {
   font-family: Helvetica;
   max-width: 300px;
   margin: auto;
-  background: white;
+  background: rgb(250, 250, 250);
   padding: 10px;
 }
