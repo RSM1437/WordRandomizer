@@ -7,6 +7,7 @@ function genPDF() {
     var wordTable = genWordTable(getWords(), numColumns);
     var doc = new jsPDF();
     var textColor = hexToRgb(document.getElementById('textColorOption').value);
+    var fontSize = document.getElementById('fontSizeOption').value;
     var fontStyle = getFontStyle();
     doc.autoTable({
         body: wordTable,
@@ -21,6 +22,7 @@ function genPDF() {
             data.cell.styles.lineWidth = 0.25;
             data.cell.styles.lineColor = [0, 0, 0];
             data.cell.styles.fontStyle = fontStyle;
+            data.cell.styles.fontSize = fontSize;
         },
     });
     var outputFilenameBox = document.getElementById("outputFilename");
