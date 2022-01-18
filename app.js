@@ -116,15 +116,14 @@ function getFontStyle() {
     if(!bold && !italic) {
         style = 'normal';
     }
-    
-    if(bold) {
-        style = 'bold';
+    else {
+        if(bold) {
+            style = 'bold';
+        }
+        if(italic) {
+            style += 'italic';
+        }
     }
-    if(italic) {
-        style += 'italic';
-    }
-
-    console.log("style = " + style);
     return style;
 }
 
