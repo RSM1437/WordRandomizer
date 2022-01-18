@@ -1,3 +1,7 @@
 body {
-  font-family: monospace;
+  font-family: Helvetica;
+  max-width: 300px;
+  margin: auto;
+  background: white;
+  padding: 10px;
 }
