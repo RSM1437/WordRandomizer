@@ -18,7 +18,15 @@ function genPDF() {
             }
         },
     });
-    doc.save("Test.pdf");
+    var outputFilenameBox = document.getElementById("outputFilename");
+    var outputFilename = outputFilenameBox.value;
+    if(outputFilename.length === 0) {
+        outputFilename = outputFilenameBox.placeholder;
+    }
+    if(!outputFilename.endsWith(".pdf")) {
+        outputFilename += ".pdf";
+    }
+    doc.save(outputFilename);
 }
 
 function getCellColor(colIndex) {
