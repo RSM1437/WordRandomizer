@@ -28,13 +28,10 @@
             <label for="wordSourceText">Text</label>
             <input type="radio" id="wordSourceFile" name="wordSource" value="File">
             <label for="wordSourceFile">File</label>
-            <input type="radio" id="wordSourceUrl" name="wordSource" value="URL">
-            <label for="wordSourceUrl">URL</label>
         </div>
         <br>
         <textarea class="wordSource Text" name="wordSourceText" id="wordSourceTextarea" rows="20" cols="40" placeholder="Type or paste words here"></textarea>
         <input  class="wordSource File" type="file" id="wordSourceFileInput" name="wordSourceFile" accept=".txt" hidden>
-        <input class="wordSource URL" type="text" name="wordSourceURL" id="wordSourceURLText"placeholder="Type or paste URL here" size="50" hidden></input>
         <br>
         <a href="javascript:genPDF()">Download PDF</a>
         <script type="text/javascript" src="app.js"></script>
