@@ -3,7 +3,8 @@ const oddColColor = [0, 0, 0];
 const blankCellColor = [255, 255, 255];
 
 function genPDF() {
-    var wordTable = genWordTable(genWords(1000), 6);
+    var words = getWords();
+    var wordTable = genWordTable(words, 6);
     var doc = new jsPDF();
     doc.autoTable({
         body: wordTable,
@@ -47,6 +48,21 @@ function genWords(numWords) {
     var words = [];
     for(var i = 0; i < numWords; ++i) {
         words.push("a");
+    }
+    return words;
+}
+
+function getWords() {
+    var words = [];
+    var lines = document.getElementsByName('words')[0].value.split("\n");
+    for(var i = 0; i < lines.length; ++i) {
+        var wordsOnLine = lines[i].split(" ");
+        for(var j = 0; j < wordsOnLine.length; ++j) {
+            var word = wordsOnLine[j].trim();
+            if(word.length > 0) {
+                words.push(word);
+            }
+        }
     }
     return words;
 }
