@@ -22,22 +22,36 @@
             });
         });
         </script>
-        <div>
-            Select word source: 
+        <div id="page1">
+            <div>
+                Select word source: 
+                <br>
+                <input type="radio" id="wordSourceText" name="wordSource" value="Text" checked="checked">
+                <label for="wordSourceText">Text</label>
+                <br>
+                <input type="radio" id="wordSourceFile" name="wordSource" value="File">
+                <label for="wordSourceFile">File</label>
+            </div>
             <br>
-            <input type="radio" id="wordSourceText" name="wordSource" value="Text" checked="checked">
-            <label for="wordSourceText">Text</label>
+            <textarea class="wordSource Text" name="wordSourceText" id="wordSourceTextarea" rows="20" cols="40" placeholder="Type or paste words here"></textarea>
+            <input  class="wordSource File" type="file" id="wordSourceFileInput" name="wordSourceFile" accept=".txt" hidden>
             <br>
-            <input type="radio" id="wordSourceFile" name="wordSource" value="File">
-            <label for="wordSourceFile">File</label>
+            <br>
+            <a href="javascript:nextPage()" style="margin-left:10px">Next</a>
         </div>
-        <br>
-        <textarea class="wordSource Text" name="wordSourceText" id="wordSourceTextarea" rows="20" cols="40" placeholder="Type or paste words here"></textarea>
-        <input  class="wordSource File" type="file" id="wordSourceFileInput" name="wordSourceFile" accept=".txt" hidden>
-        <br>
-        <br>
-        <br>
-        <a href="javascript:genPDF()">Download PDF</a>
+        <div id="page2" style="display:none;">
+            <a href="javascript:prevPage()">Back</a>
+            <br>
+            <br>
+            Output options:
+            <br>
+            <br>
+            File name: 
+            <input type="text" id="outputFilename" placeholder="randomWords.pdf">
+            <br>
+            <br>
+            <a href="javascript:genPDF()">Download PDF</a>
+        </div>
         <script type="text/javascript" src="app.js"></script>
     </body>
 </html>

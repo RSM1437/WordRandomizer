@@ -2,6 +2,7 @@ const evenColumnColor = [224, 224, 224];
 const oddColumnColor = [160, 160, 160];
 const blankCellColor = [255, 255, 255];
 var fileText = "";
+var pageNum = 1;
 
 function genPDF() {
     var wordTable = genWordTable(getWords(), 6);
@@ -67,6 +68,18 @@ function getWordsFromText(text) {
         }
     }
     return words;
+}
+
+function nextPage() {
+    document.getElementById('page' + pageNum).style.display = "none";
+    ++pageNum;
+    document.getElementById('page' + pageNum).style.display = "block";
+}
+
+function prevPage() {
+    document.getElementById('page' + pageNum).style.display = "none";
+    --pageNum;
+    document.getElementById('page' + pageNum).style.display = "block";
 }
 
 document.getElementById('wordSourceFileInput').addEventListener('change', function() {
