@@ -4,7 +4,9 @@ var pageNum = 1;
 
 function genPDF() {
     var numColumns = document.getElementById('numColumnsOption').value;
-    var wordTable = genWordTable(getWords(), numColumns);
+    var words = getWords();
+    shuffle(words);
+    var wordTable = genWordTable(words, numColumns);
     var doc = new jsPDF();
     var textColor = hexToRgb(document.getElementById('textColorOption').value);
     var fontSize = document.getElementById('fontSizeOption').value;
@@ -95,6 +97,24 @@ function getWordsFromText(text) {
         }
     }
     return words;
+}
+
+function shuffle(array) {
+    let currentIndex = array.length,  randomIndex;
+  
+    // While there remain elements to shuffle...
+    while (currentIndex != 0) {
+  
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+  
+    return array;
 }
 
 function nextPage() {
