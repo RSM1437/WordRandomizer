@@ -7,6 +7,7 @@ function genPDF() {
     var wordTable = genWordTable(getWords(), numColumns);
     var doc = new jsPDF();
     var textColor = hexToRgb(document.getElementById('textColorOption').value);
+    var fontStyle = getFontStyle();
     doc.autoTable({
         body: wordTable,
         didParseCell: function (data) {
@@ -19,6 +20,7 @@ function genPDF() {
             data.cell.styles.textColor = textColor;
             data.cell.styles.lineWidth = 0.25;
             data.cell.styles.lineColor = [0, 0, 0];
+            data.cell.styles.fontStyle = fontStyle;
         },
     });
     var outputFilenameBox = document.getElementById("outputFilename");
@@ -102,6 +104,25 @@ function prevPage() {
     document.getElementById('page' + pageNum).style.display = "none";
     --pageNum;
     document.getElementById('page' + pageNum).style.display = "block";
+}
+
+function getFontStyle() {
+    var bold = document.getElementById('fontStyleOptionBold').checked;
+    var italic = document.getElementById('fontStyleOptionItalic').checked;
+    var style = "";
+    if(!bold && !italic) {
+        style = 'normal';
+    }
+    
+    if(bold) {
+        style = 'bold';
+    }
+    if(italic) {
+        style += 'italic';
+    }
+
+    console.log("style = " + style);
+    return style;
 }
 
 document.getElementById('wordSourceFileInput').addEventListener('change', function() {
