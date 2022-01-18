@@ -5,7 +5,8 @@ var fileText = "";
 var pageNum = 1;
 
 function genPDF() {
-    var wordTable = genWordTable(getWords(), 6);
+    var numColumns = document.getElementById('numColumnsOption').value;
+    var wordTable = genWordTable(getWords(), numColumns);
     var doc = new jsPDF();
     doc.autoTable({
         body: wordTable,
@@ -40,7 +41,7 @@ function genWordTable(words, numColumns) {
     for(var i = 0; i < words.length; i++) {
         row.push(words[i]);
         ++colIndex;
-        if(colIndex === numColumns) {
+        if(colIndex == numColumns) {
             colIndex = 0;
             wordTable.push(row);
             row = [];
