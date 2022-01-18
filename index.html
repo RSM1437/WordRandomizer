@@ -24,14 +24,18 @@
         </script>
         <div>
             Select word source: 
+            <br>
             <input type="radio" id="wordSourceText" name="wordSource" value="Text" checked="checked">
             <label for="wordSourceText">Text</label>
+            <br>
             <input type="radio" id="wordSourceFile" name="wordSource" value="File">
             <label for="wordSourceFile">File</label>
         </div>
         <br>
         <textarea class="wordSource Text" name="wordSourceText" id="wordSourceTextarea" rows="20" cols="40" placeholder="Type or paste words here"></textarea>
         <input  class="wordSource File" type="file" id="wordSourceFileInput" name="wordSourceFile" accept=".txt" hidden>
+        <br>
+        <br>
         <br>
         <a href="javascript:genPDF()">Download PDF</a>
         <script type="text/javascript" src="app.js"></script>
