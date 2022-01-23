@@ -79,10 +79,12 @@ function genPDF() {
         if(progPct == 100) {
             doc.save(outputFilename);
             generatingPdf = false;
+            document.getElementById("PdfSuccessMsg").style.display = "block";
             pdfWorker.terminate();
         }
     }, false);
     generatingPdf = true;
+    document.getElementById("PdfSuccessMsg").style.display = "none";
     pdfWorker.postMessage({
         numColumns: numColumns,
         words: words,
