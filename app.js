@@ -1,6 +1,10 @@
 const blankCellColor = [255, 255, 255];
 var fileText = "";
 var pageNum = 1;
+var readingFile = false;
+
+//As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
+function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
 
 function genPDF() {
     var numColumns = document.getElementById('numColumnsOption').value;
@@ -147,19 +151,33 @@ function getFontStyle() {
     return style;
 }
 
+
+
 document.getElementById('wordSourceFileInput').addEventListener('change', function() {
-    var fr = new FileReader();
-    var progBar = document.getElementById("fileUploadProgressBar");
-    fr.onload = function() {
+    var fileWorker = new Worker(getScriptPath(function(){
+        self.addEventListener('message', function(e) {
+            var fr = new FileReader();;
+            fr.onload = function() {
+                fileText = fr.result;
+            } 
+            fr.onprogress = function(pe) {
+                if(pe.lengthComputable) {
+                    var progressPct = Math.round((pe.loaded / pe.total) * 100);
+                    self.postMessage(progressPct);
+                }
+            }
+            fr.readAsText(e.data);
+        }, false);
+    }));
+    fileWorker.addEventListener('message', function(e) {
+        var progBar = document.getElementById("fileUploadProgressBar");
         progBar.style.display = "block";
-        fileText = fr.result;
-    } 
-    fr.onprogress = function(pe) {
-        if(pe.lengthComputable) {
-            var progressPct = (pe.loaded / pe.total) * 100;
-            progBar.style.width = progressPct + "%";
-            progBar.innerHTML = progressPct + "%";
+        progBar.style.width = e.data + "%";
+        progBar.innerHTML = e.data + "%";
+        if(e.data == 100) {
+            readingFile = false;
         }
-    }
-    fr.readAsText(this.files[0]);
+    }, false);
+    readingFile = true;
+    fileWorker.postMessage(this.files[0]);
 })
