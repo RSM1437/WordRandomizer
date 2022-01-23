@@ -76,11 +76,13 @@
             <br>
             <br>
             <br>
-            <button type="button" onClick="javascript:genPDF()">Download PDF</button>
+            <div class="center"><button type="button" onClick="javascript:genPDF()">Download PDF</button></div>
             <br>
-            <div id="pdfProgress" class="progressBar">
+            <div id="pdfProgress" class="progressBar center">
                 <div id="pdfProgressBar" class="progressBarFilled" hidden></div>
             </div>
+            <br>
+            <div class="center" id="pdfCancelBtn" hidden><button type="button" onClick="javascript:cancelPDF()">Cancel</button></div>
             <div id="PdfSuccessMsg" class="center" hidden>
                 <p>PDF Saved succesfully!</p>
             </div>

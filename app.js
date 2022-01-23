@@ -3,13 +3,14 @@ var fileText = "";
 var pageNum = 1;
 var readingFile = false;
 var generatingPdf = false;
+var pdfWorker;
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
 
 function genPDF() {
 
-    var pdfWorker = new Worker(getScriptPath(function(){
+    pdfWorker = new Worker(getScriptPath(function(){
         self.addEventListener('message', function(e) {
             var words = e.data.words;
             if(words.length == 0) {
@@ -73,22 +74,33 @@ function genPDF() {
         var progBar = document.getElementById("pdfProgressBar");
         wordsProcessed += e.data.length;
         var progPct = numWords > 0 ? Math.round((wordsProcessed / numWords) * 100) : 100;
-        progBar.style.display = "block";
         progBar.style.width = progPct + "%";
         progBar.innerHTML = progPct + "%";
         if(progPct == 100) {
             doc.save(outputFilename);
             generatingPdf = false;
             document.getElementById("PdfSuccessMsg").style.display = "block";
+            document.getElementById('pdfCancelBtn').style.display = "none";
             pdfWorker.terminate();
         }
     }, false);
     generatingPdf = true;
     document.getElementById("PdfSuccessMsg").style.display = "none";
+    var progBar = document.getElementById("pdfProgressBar");
+    progBar.style.display = "block";
+    progBar.style.width = 0 + "%";
+    progBar.innerHTML = 0 + "%";
+    document.getElementById('pdfCancelBtn').style.display = "block";
     pdfWorker.postMessage({
         numColumns: numColumns,
         words: words,
     });
+}
+
+function cancelPDF() {
+    document.getElementById('pdfCancelBtn').style.display = "none";
+    document.getElementById("pdfProgressBar").style.display = "none";
+    pdfWorker.terminate();
 }
 
 function getCellColor(colIndex) {
