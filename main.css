@@ -5,3 +5,18 @@ body {
   background: rgb(250, 250, 250);
   padding: 10px;
 }
+
+.progressBar {
+  width: 100%;
+  background-color: grey;
+}
+
+.progressBarFilled {
+  width: 1%;
+  height: 15px;
+  background-color: green;
+  text-align: center; /* To center it horizontally (if you want) */
+  line-height: 15px; /* To center it vertically */
+  color: white;
+  font-size: small;
+}

@@ -149,8 +149,17 @@ function getFontStyle() {
 
 document.getElementById('wordSourceFileInput').addEventListener('change', function() {
     var fr = new FileReader();
+    var progBar = document.getElementById("fileUploadProgressBar");
     fr.onload = function() {
+        progBar.style.display = "block";
         fileText = fr.result;
     } 
+    fr.onprogress = function(pe) {
+        if(pe.lengthComputable) {
+            var progressPct = (pe.loaded / pe.total) * 100;
+            progBar.style.width = progressPct + "%";
+            progBar.innerHTML = progressPct + "%";
+        }
+    }
     fr.readAsText(this.files[0]);
 })
