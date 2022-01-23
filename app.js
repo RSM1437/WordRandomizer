@@ -2,45 +2,91 @@ const blankCellColor = [255, 255, 255];
 var fileText = "";
 var pageNum = 1;
 var readingFile = false;
+var generatingPdf = false;
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
 
 function genPDF() {
-    var numColumns = document.getElementById('numColumnsOption').value;
+
+    var pdfWorker = new Worker(getScriptPath(function(){
+        self.addEventListener('message', function(e) {
+            var words = e.data.words;
+            if(words.length == 0) {
+                self.postMessage([]);
+                return;
+            }
+
+            var numColumns = e.data.numColumns;
+            let currentIndex = words.length,  randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [words[currentIndex], words[randomIndex]] = [words[randomIndex], words[currentIndex]];
+            }
+            var row = [];
+            var colIndex = 0;
+            
+            for(var i = 0; i < words.length; i++) {
+                row.push(words[i]);
+                ++colIndex;
+                if(colIndex == numColumns) {
+                    colIndex = 0;
+                    self.postMessage(row);
+                    row = [];
+                }
+            }
+            if(row.length > 0) {
+                self.postMessage(row);
+                row = [];
+            }
+        }, false);
+    }));
+    var wordsProcessed = 0;
     var words = getWords();
-    shuffle(words);
-    var wordTable = genWordTable(words, numColumns);
+    var numWords = words.length;
+    var numColumns = document.getElementById('numColumnsOption').value;
     var doc = new jsPDF();
     var textColor = hexToRgb(document.getElementById('textColorOption').value);
     var fontSize = document.getElementById('fontSizeOption').value;
     var fontStyle = getFontStyle();
     var borderWidth = document.getElementById('cellBordersOption').checked ? 0.1 : 0;
-    doc.autoTable({
-        body: wordTable,
-        didParseCell: function (data) {
-            if(data.cell.raw != undefined) {
-                data.cell.styles.fillColor = getCellColor(data.column.index);
-            }
-            else {
-                data.cell.styles.fillColor = blankCellColor;
-            }
-            data.cell.styles.textColor = textColor;
-            data.cell.styles.lineWidth = borderWidth;
-            data.cell.styles.lineColor = [0, 0, 0];
-            data.cell.styles.fontStyle = fontStyle;
-            data.cell.styles.fontSize = fontSize;
-        },
+    var outputFilename = getPdfFilename();
+    pdfWorker.addEventListener('message', function(e) {
+        doc.autoTable({
+            body: [e.data],
+            startY: doc.lastAutoTable ? doc.lastAutoTable.finalY : 20,
+            didParseCell: function (data) {
+                if(data.cell.raw != undefined) {
+                    data.cell.styles.fillColor = getCellColor(data.column.index);
+                }
+                else {
+                    data.cell.styles.fillColor = blankCellColor;
+                }
+                data.cell.styles.textColor = textColor;
+                data.cell.styles.lineWidth = borderWidth;
+                data.cell.styles.lineColor = [0, 0, 0];
+                data.cell.styles.fontStyle = fontStyle;
+                data.cell.styles.fontSize = fontSize;
+                data.cell.styles.cellWidth = 181 / numColumns;
+        }});
+        var progBar = document.getElementById("pdfProgressBar");
+        wordsProcessed += e.data.length;
+        var progPct = numWords > 0 ? Math.round((wordsProcessed / numWords) * 100) : 100;
+        progBar.style.display = "block";
+        progBar.style.width = progPct + "%";
+        progBar.innerHTML = progPct + "%";
+        if(progPct == 100) {
+            doc.save(outputFilename);
+            generatingPdf = false;
+            pdfWorker.terminate();
+        }
+    }, false);
+    generatingPdf = true;
+    pdfWorker.postMessage({
+        numColumns: numColumns,
+        words: words,
     });
-    var outputFilenameBox = document.getElementById("outputFilename");
-    var outputFilename = outputFilenameBox.value;
-    if(outputFilename.length === 0) {
-        outputFilename = outputFilenameBox.placeholder;
-    }
-    if(!outputFilename.endsWith(".pdf")) {
-        outputFilename += ".pdf";
-    }
-    doc.save(outputFilename);
 }
 
 function getCellColor(colIndex) {
@@ -49,32 +95,25 @@ function getCellColor(colIndex) {
     return colIndex % 2 === 0 ? evenColumnColor : oddColumnColor;
 }
 
+function getPdfFilename() {
+    var outputFilenameBox = document.getElementById("outputFilename");
+    var outputFilename = outputFilenameBox.value;
+    if(outputFilename.length === 0) {
+        outputFilename = outputFilenameBox.placeholder;
+    }
+    if(!outputFilename.endsWith(".pdf")) {
+        outputFilename += ".pdf";
+    }
+    return outputFilename;
+}
+
 function hexToRgb(hex) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? 
-      [parseInt(result[1], 16),
-      parseInt(result[2], 16),
-      parseInt(result[3], 16)]
-      : null;
-  }
-
-function genWordTable(words, numColumns) {
-    var wordTable= [];
-    var row = [];
-    var colIndex = 0;
-    for(var i = 0; i < words.length; i++) {
-        row.push(words[i]);
-        ++colIndex;
-        if(colIndex == numColumns) {
-            colIndex = 0;
-            wordTable.push(row);
-            row = [];
-        }
-    }
-    if(row.length > 0) {
-        wordTable.push(row);
-    }
-    return wordTable;
+        [parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16)]
+        : null;
 }
 
 function getWords() {
@@ -158,12 +197,12 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
         self.addEventListener('message', function(e) {
             var fr = new FileReader();;
             fr.onload = function() {
-                fileText = fr.result;
+                self.postMessage({text: fr.result});
             } 
             fr.onprogress = function(pe) {
                 if(pe.lengthComputable) {
                     var progressPct = Math.round((pe.loaded / pe.total) * 100);
-                    self.postMessage(progressPct);
+                    self.postMessage({prog: progressPct});
                 }
             }
             fr.readAsText(e.data);
@@ -172,10 +211,14 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
     fileWorker.addEventListener('message', function(e) {
         var progBar = document.getElementById("fileUploadProgressBar");
         progBar.style.display = "block";
-        progBar.style.width = e.data + "%";
-        progBar.innerHTML = e.data + "%";
-        if(e.data == 100) {
+        if(e.data.hasOwnProperty('prog')) {
+            var progress = e.data.prog;
+            progBar.style.width = progress + "%";
+            progBar.innerHTML = progress + "%";
+        }
+        if(e.data.hasOwnProperty('text')) {
             readingFile = false;
+            fileText = e.data.text;
         }
     }, false);
     readingFile = true;
