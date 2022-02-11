@@ -1,0 +1,24 @@
+{
+  "name": "wordrandomizer",
+  "version": "1.0.0",
+  "description": "Allows you to randomize a list of words from one of several types of sources and save them to a PDF.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fredespo/WordRandomizer.git"
+  },
+  "author": "Fredrick Esposito",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fredespo/WordRandomizer/issues"
+  },
+  "homepage": "https://github.com/fredespo/WordRandomizer#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.10",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6"
+  }
+}
