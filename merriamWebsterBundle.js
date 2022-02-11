@@ -17,9 +17,10 @@ class WordScrape {
                 const $= cheerio.load(html);
                 $(".entries").each((i, data) => {
                     const item = $(data).text().replace(/^\s+|\s+$/gm,'');
-                    if(!this.hasNumber(item)) {
-                        words.push(item);
-                    }
+                    var newWords = item.split('\n');
+                    newWords.forEach(newWord => {
+                        words.push(newWord);
+                    });
                 })
                 this.pageNum++;
                 var nextPageLink = this.page + this.letter + "/" + this.pageNum;
@@ -46,24 +47,24 @@ class WordScrape {
     }
 }
 
-window.getWordsFromMerriamWebster = function() {
+window.getWordsFromMerriamWebster = function(onComplete) {
     var letters = ['a', 'b', /*'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z'*/];
     var letterIdx = 0;
     var allWords = [];
-    var onComplete = function(words) {
+    var letterIsDoneCallback = function(words) {
         console.log("Got words for " + letters[letterIdx] + ": " + "Found " + words.length + " words!");
         allWords.push(words);
         if(++letterIdx < letters.length) {
-            new WordScrape(letters[letterIdx]).scrape(onComplete);
+            new WordScrape(letters[letterIdx]).scrape(letterIsDoneCallback);
         }
         else {
             console.log("DONE");
             allWords = allWords.flat();
             console.log("Found a total of " + allWords.length + " words!");
+            onComplete(allWords);
         }
     };
-    new WordScrape(letters[0]).scrape(onComplete);
-    return ['test'];
+    new WordScrape(letters[0]).scrape(letterIsDoneCallback);
 }
 
 },{"cheerio":68,"request-promise":216}],2:[function(require,module,exports){

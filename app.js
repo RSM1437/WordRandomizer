@@ -4,6 +4,7 @@ var pageNum = 1;
 var readingFile = false;
 var generatingPdf = false;
 var pdfWorker;
+var merriamWebsterWords = [];
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
@@ -139,7 +140,7 @@ function getWords() {
         words = getWordsFromText(fileText);
     }
     else if(document.getElementById("wordSourceMerriamWebster").checked) {
-        words = getWordsFromMerriamWebster();
+        words = merriamWebsterWords;
     }
     return words;
 }
@@ -241,3 +242,11 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
     readingFile = true;
     fileWorker.postMessage(this.files[0]);
 })
+
+function downloadWordsFromMerriamWebster() {
+    console.log("Download started...");
+    getWordsFromMerriamWebster((words) => {
+        merriamWebsterWords = words;
+        console.log("Download complete!");
+    });
+}
