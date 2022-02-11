@@ -257,7 +257,7 @@ function downloadWordsFromMerriamWebster() {
         progBar.style.width = progressPct + "%";
         progBar.innerHTML = progressPct + "%";
     };
-    updateProgress(5);
+    updateProgress(1);
     var onProgress = function(progressPct) {
         updateProgress(progressPct);
     }
