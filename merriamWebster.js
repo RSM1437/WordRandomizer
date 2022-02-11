@@ -16,7 +16,7 @@ class WordScrape {
     }
 
     shouldAdd(word) {
-        if(this.hasNumber(word)) {
+        if(this.hasNumber(word) || this.hasUnsupportedChars(word)) {
             return false;
         }
 
@@ -56,6 +56,7 @@ class WordScrape {
                     const item = $(data).text().replace(/^\s+|\s+$/gm,'');
                     var newWords = item.split('\n');
                     newWords.forEach(newWord => {
+                        newWord = this.cleanSpecialChars(newWord);
                         if(this.shouldAdd(newWord)) {
                             words.push(newWord);
                         }
@@ -83,6 +84,17 @@ class WordScrape {
 
     hasNumber(myString) {
         return /\d/.test(myString);
+    }
+
+    //jspdf doesn't support UTF-8 characters :(
+    cleanSpecialChars(string) {
+        var newString = string.replace('ʽ', '\'');
+        return newString;
+    }
+
+    //jspdf doesn't support UTF-8 characters :(
+    hasUnsupportedChars(string) {
+        return/[^\x00-\x7F]/g.test(string);
     }
 
     isLetter(c) {
