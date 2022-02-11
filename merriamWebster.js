@@ -59,9 +59,6 @@ class WordScrape {
                         if(this.shouldAdd(newWord)) {
                             words.push(newWord);
                         }
-                        else {
-                            console.log("ignored " + newWord);
-                        }
                     });
                 })
                 this.pageNum++;
