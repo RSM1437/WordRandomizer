@@ -250,7 +250,6 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
 
 function downloadWordsFromMerriamWebster() {
     downloadInProgress = true;
-    console.log("Download started...");
     var progBar = document.getElementById("merriamWebsterDownloadProgressBar");
     progBar.style.display = "block";
     var updateProgress = function(progressPct) {
@@ -259,13 +258,11 @@ function downloadWordsFromMerriamWebster() {
     };
     updateProgress(5);
     var onProgress = function(progressPct) {
-        console.log('Letter complete');
         updateProgress(progressPct);
     }
     var onComplete = function(words) {
         merriamWebsterWords = words;
         updateProgress(100);
-        console.log("Download complete!");
         downloadInProgress = false;
     };
     var includeHyphenated = document.getElementById('merriamWebsterOptionIncludeHyphenated').checked;

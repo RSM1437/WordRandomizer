@@ -144,7 +144,6 @@ window.getWordsFromMerriamWebster = function(includeHyphenated, includeProper, i
     var letterIdx = 0;
     var allWords = [];
     var letterIsDoneCallback = function(words) {
-        console.log("Got words for " + letters[letterIdx] + ": " + "Found " + words.length + " words!");
         allWords.push(words);
         if(++letterIdx < letters.length) {
             var progressPct = Math.round(letterIdx / letters.length * 100);
@@ -159,9 +158,7 @@ window.getWordsFromMerriamWebster = function(includeHyphenated, includeProper, i
             wordScrape.scrape(letterIsDoneCallback);
         }
         else {
-            console.log("DONE");
             allWords = allWords.flat();
-            console.log("Found a total of " + allWords.length + " words!");
             onComplete(allWords);
         }
     };
