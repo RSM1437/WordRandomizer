@@ -138,10 +138,24 @@ class WordScrape {
     }
 
     isAcronym(word) {
+        var isLowercaseAcronym = true;
+        for(let i = 0; i < word.length; i += 2) {
+            if(i+1 >= word.length || !this.isLetter(word.charAt(i)) || word.charAt(i+1) != '.') {
+                isLowercaseAcronym = false;
+                break;
+            }
+        }
+
+        var isUpeprcaseAcronym = true;
         for (let i = 0; i < word.length; i++) {
             if(!this.isUpperCaseLetter(word.charAt(i)) && word.charAt(i) != ".") {
-                return false;
+                isUpeprcaseAcronym = false;
+                break;
             }
+        }
+
+        if(!isLowercaseAcronym && !isUpeprcaseAcronym) {
+            return false;
         }
         return true;
     }
