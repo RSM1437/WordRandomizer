@@ -5,6 +5,7 @@ var readingFile = false;
 var generatingPdf = false;
 var pdfWorker;
 var merriamWebsterWords = [];
+var downloadInProgress = false;
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
@@ -179,6 +180,10 @@ function shuffle(array) {
 }
 
 function nextPage() {
+    if(downloadInProgress) {
+        return;
+    }
+
     document.getElementById('page' + pageNum).style.display = "none";
     ++pageNum;
     document.getElementById('page' + pageNum).style.display = "block";
@@ -244,9 +249,24 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
 })
 
 function downloadWordsFromMerriamWebster() {
+    downloadInProgress = true;
     console.log("Download started...");
-    getWordsFromMerriamWebster((words) => {
+    var progBar = document.getElementById("merriamWebsterDownloadProgressBar");
+    progBar.style.display = "block";
+    var updateProgress = function(progressPct) {
+        progBar.style.width = progressPct + "%";
+        progBar.innerHTML = progressPct + "%";
+    };
+    updateProgress(5);
+    var onProgress = function(progressPct) {
+        console.log('Letter complete');
+        updateProgress(progressPct);
+    }
+    var onComplete = function(words) {
         merriamWebsterWords = words;
+        updateProgress(100);
         console.log("Download complete!");
-    });
+        downloadInProgress = false;
+    };
+    getWordsFromMerriamWebster(onProgress, onComplete);
 }

@@ -47,7 +47,7 @@ class WordScrape {
     }
 }
 
-window.getWordsFromMerriamWebster = function(onComplete) {
+window.getWordsFromMerriamWebster = function(onProgress, onComplete) {
     var letters = ['a', 'b', /*'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z'*/];
     var letterIdx = 0;
     var allWords = [];
@@ -55,6 +55,8 @@ window.getWordsFromMerriamWebster = function(onComplete) {
         console.log("Got words for " + letters[letterIdx] + ": " + "Found " + words.length + " words!");
         allWords.push(words);
         if(++letterIdx < letters.length) {
+            var progressPct = Math.round(letterIdx / letters.length * 100);
+            onProgress(progressPct);
             new WordScrape(letters[letterIdx]).scrape(letterIsDoneCallback);
         }
         else {
