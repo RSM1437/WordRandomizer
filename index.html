@@ -43,9 +43,34 @@
             <div id="fileUploadProgress" class="progressBar wordSource File" hidden>
                 <div id="fileUploadProgressBar" class="progressBarFilled" hidden></div>
             </div>
-            <button type="button" class="wordSource Merriam-Webster" onClick="javascript:downloadWordsFromMerriamWebster()">Import Words</button>
-            <div id="merriamWebsterDownloadProgress" class="progressBar wordSource Merriam-Webster" hidden>
-                <div id="merriamWebsterDownloadProgressBar" class="progressBarFilled" hidden></div>
+            <div class="wordSource Merriam-Webster" style="padding-left:10px" hidden>
+                <div id="merriamWebsterOptions">
+                    Include:
+                    <br>
+                    <input type="checkbox" id="merriamWebsterOptionIncludeHyphenated" name="merriamWebsterOptionIncludeHyphenated" value="includeHyphenated">
+                    <label for="merriamWebsterOptionIncludeHyphenated">Hyphenated Words (like "face-off")</label>
+                    <br>
+                    <input type="checkbox" id="merriamWebsterOptionIncludeProper" name="merriamWebsterOptionIncludeProper" value="includeProper">
+                    <label for="merriamWebsterOptionIncludeProper">Proper nouns (like "Wisconsin")</label>
+                    <br>
+                    <input type="checkbox" id="merriamWebsterOptionIncludePhrases" name="merriamWebsterOptionIncludePhrases" value="includePhrases">
+                    <label for="merriamWebsterOptionIncludePhrases">Phrases (like "a quarter after")</label>
+                    <br>
+                    <input type="checkbox" id="merriamWebsterOptionIncludePrefixes" name="merriamWebsterOptionIncludePrefixes" value="includePrefixes">
+                    <label for="merriamWebsterOptionIncludePrefixes">Prefixes (like "anti-")</label>
+                    <br>
+                    <input type="checkbox" id="merriamWebsterOptionIncludeSuffixes" name="merriamWebsterOptionIncludeSuffixes" value="includeSuffixes">
+                    <label for="merriamWebsterOptionIncludeSuffixes">Suffixes (like "-able")</label>
+                    <br>
+                    <input type="checkbox" id="merriamWebsterOptionIncludeAcronyms" name="merriamWebsterOptionIncludeAcronyms" value="includeAcronyms">
+                    <label for="merriamWebsterOptionIncludeAcronyms">Acronyms (like "G.O.A.T")</label>
+                    <br>
+                    <br>
+                </div>
+                <button type="button" onClick="javascript:downloadWordsFromMerriamWebster()">Import Words</button>
+                <div id="merriamWebsterDownloadProgress" class="progressBar" hidden>
+                    <div id="merriamWebsterDownloadProgressBar" class="progressBarFilled" hidden></div>
+                </div>
             </div>
             <br>
             <br>

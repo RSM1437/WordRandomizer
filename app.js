@@ -268,5 +268,11 @@ function downloadWordsFromMerriamWebster() {
         console.log("Download complete!");
         downloadInProgress = false;
     };
-    getWordsFromMerriamWebster(onProgress, onComplete);
+    var includeHyphenated = document.getElementById('merriamWebsterOptionIncludeHyphenated').checked;
+    var includeProper = document.getElementById('merriamWebsterOptionIncludeProper').checked;
+    var includePhrases = document.getElementById('merriamWebsterOptionIncludePhrases').checked;
+    var includePrefixes = document.getElementById('merriamWebsterOptionIncludePrefixes').checked;
+    var includeSuffixes = document.getElementById('merriamWebsterOptionIncludeSuffixes').checked;
+    var includeAcronyms = document.getElementById('merriamWebsterOptionIncludeAcronyms').checked;
+    getWordsFromMerriamWebster(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete);
 }

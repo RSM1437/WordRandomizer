@@ -7,6 +7,44 @@ class WordScrape {
         this.pageNum = 1;
         this.website = 'https://www.merriam-webster.com';
         this.page = '/browse/dictionary/';
+        this.includeHyphenated = false;
+        this.includeProper = false;
+        this.includePhrases = false;
+        this.includePrefixes = false;
+        this.includeSuffixes = false;
+        this.includeAcronyms = false;
+    }
+
+    shouldAdd(word) {
+        if(this.hasNumber(word)) {
+            return false;
+        }
+
+        if(!this.includeHyphenated && this.isHyphenated(word)) {
+            return false;
+        }
+
+        if(!this.includeProper && this.isProper(word)) {
+            return false;
+        }
+        
+        if(!this.includePhrases && this.isPhrase(word)) {
+            return false;
+        }
+
+        if(!this.includePrefixes && this.isPrefix(word)) {
+            return false;
+        }
+
+        if(!this.includeSuffixes && this.isSuffix(word)) {
+            return false;
+        }
+
+        if(!this.includeAcronyms && this.isAcronym(word)) {
+            return false;
+        }
+
+        return true;
     }
 
     scrape(onComplete) {
@@ -18,7 +56,12 @@ class WordScrape {
                     const item = $(data).text().replace(/^\s+|\s+$/gm,'');
                     var newWords = item.split('\n');
                     newWords.forEach(newWord => {
-                        words.push(newWord);
+                        if(this.shouldAdd(newWord)) {
+                            words.push(newWord);
+                        }
+                        else {
+                            console.log("ignored " + newWord);
+                        }
                     });
                 })
                 this.pageNum++;
@@ -44,9 +87,58 @@ class WordScrape {
     hasNumber(myString) {
         return /\d/.test(myString);
     }
+
+    isLetter(c) {
+        return c.toLowerCase() != c.toUpperCase();
+    }
+
+    isUpperCaseLetter(c) {
+        return this.isLetter(c) && c === c.toUpperCase();
+    }
+
+    isLowerCaseLetter(c) {
+        return this.isLetter(c) && c === c.toLowerCase();
+    }
+
+    isHyphenated(word) {
+        return word.includes("-") && !word.startsWith("-") && !word.endsWith("-");
+    }
+
+    isProper(word) {
+        if(!this.isUpperCaseLetter(word.charAt(0))) {
+            return false;
+        }
+        for(let i = 1; i < word.length; i++) {
+            if(this.isLetter(word.charAt(i)) && !this.isLowerCaseLetter(word.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    isPhrase(word) {
+        return word.includes(" ");
+    }
+
+    isPrefix(word) {
+        return word.endsWith("-");
+    }
+
+    isSuffix(word) {
+        return word.startsWith("-");
+    }
+
+    isAcronym(word) {
+        for (let i = 0; i < word.length; i++) {
+            if(!this.isUpperCaseLetter(word.charAt(i)) && word.charAt(i) != ".") {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
-window.getWordsFromMerriamWebster = function(onProgress, onComplete) {
+window.getWordsFromMerriamWebster = function(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete) {
     var letters = ['a', 'b', /*'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z'*/];
     var letterIdx = 0;
     var allWords = [];
@@ -56,7 +148,14 @@ window.getWordsFromMerriamWebster = function(onProgress, onComplete) {
         if(++letterIdx < letters.length) {
             var progressPct = Math.round(letterIdx / letters.length * 100);
             onProgress(progressPct);
-            new WordScrape(letters[letterIdx]).scrape(letterIsDoneCallback);
+            var wordScrape = new WordScrape(letters[letterIdx]);
+            wordScrape.includeHyphenated = includeHyphenated;
+            wordScrape.includeProper = includeProper;
+            wordScrape.includePhrases = includePhrases;
+            wordScrape.includePrefixes = includePrefixes;
+            wordScrape.includeSuffixes = includeSuffixes;
+            wordScrape.includeAcronyms = includeAcronyms;
+            wordScrape.scrape(letterIsDoneCallback);
         }
         else {
             console.log("DONE");
@@ -65,5 +164,12 @@ window.getWordsFromMerriamWebster = function(onProgress, onComplete) {
             onComplete(allWords);
         }
     };
-    new WordScrape(letters[0]).scrape(letterIsDoneCallback);
+    var wordScrape = new WordScrape(letters[0]);
+    wordScrape.includeHyphenated = includeHyphenated;
+    wordScrape.includeProper = includeProper;
+    wordScrape.includePhrases = includePhrases;
+    wordScrape.includePrefixes = includePrefixes;
+    wordScrape.includeSuffixes = includeSuffixes;
+    wordScrape.includeAcronyms = includeAcronyms;
+    wordScrape.scrape(letterIsDoneCallback);
 }
