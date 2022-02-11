@@ -138,6 +138,9 @@ function getWords() {
     else if (document.getElementById("wordSourceFile").checked) {
         words = getWordsFromText(fileText);
     }
+    else if(document.getElementById("wordSourceMerriamWebster").checked) {
+        words = getWordsFromMerriamWebster();
+    }
     return words;
 }
 

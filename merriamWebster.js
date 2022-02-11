@@ -1,0 +1,3 @@
+function getWordsFromMerriamWebster() {
+    return ['test'];
+}
