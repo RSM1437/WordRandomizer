@@ -24,14 +24,14 @@ class WordScrape {
                 this.pageNum++;
                 var nextPageLink = this.page + this.letter + "/" + this.pageNum;
                 var foundNextPageLink = false;
-                $("a").each((i, data) => {
+                /*$("a").each((i, data) => {
                     var link = ($(data).attr('href'));
                     if(link == nextPageLink) {
                         request(this.website + link, f);
                         foundNextPageLink = true;
                         return false;
                     }
-                });
+                });*/
                 if(!foundNextPageLink) {
                     onComplete(words);
                 }
