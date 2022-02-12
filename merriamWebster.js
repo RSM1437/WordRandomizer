@@ -148,7 +148,7 @@ class WordScrape {
 
         var isUpeprcaseAcronym = true;
         for (let i = 0; i < word.length; i++) {
-            if(!this.isUpperCaseLetter(word.charAt(i)) && word.charAt(i) != ".") {
+            if(!this.isUpperCaseLetter(word.charAt(i)) && word.charAt(i) != "." && word.charAt(i) != '/' && word.charAt(i) != '&') {
                 isUpeprcaseAcronym = false;
                 break;
             }
