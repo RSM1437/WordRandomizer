@@ -264,7 +264,7 @@ function downloadWordsFromMerriamWebster() {
     var onComplete = function(words) {
         merriamWebsterWords = words;
         updateProgress(100);
-        document.getElementById("MerriamWebsterDownloadSuccessMsg").innerText = "Successfully imported " + words.length + " words!";
+        document.getElementById("MerriamWebsterDownloadSuccessMsg").innerText = "Successfully imported " + words.length.toLocaleString() + " words!";
         document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'block';
         downloadInProgress = false;
         document.getElementById('nextBtn').style.display = "block";
