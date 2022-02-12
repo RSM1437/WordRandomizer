@@ -66,14 +66,14 @@ class WordScrape {
                 this.pageNum++;
                 var nextPageLink = this.page + this.letter + "/" + this.pageNum;
                 var foundNextPageLink = false;
-                /*$("a").each((i, data) => {
+                $("a").each((i, data) => {
                     var link = ($(data).attr('href'));
                     if(link == nextPageLink) {
                         request(this.website + link, f);
                         foundNextPageLink = true;
                         return false;
                     }
-                });*/
+                });
                 if(!foundNextPageLink) {
                     onComplete(words);
                 }
@@ -174,7 +174,7 @@ class WordScrape {
 }
 
 window.getWordsFromMerriamWebster = function(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete) {
-    var letters = ['a'/*, 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z'*/];
+    var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z'];
     var letterIdx = 0;
     var allWords = [];
     var letterIsDoneCallback = function(words) {
