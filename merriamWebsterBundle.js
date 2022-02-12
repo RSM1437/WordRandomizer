@@ -161,12 +161,11 @@ class WordScrape {
 
         var isUpeprcaseAcronym = true;
         for (let i = 0; i < word.length; i++) {
-            if(!this.isUpperCaseLetter(word.charAt(i)) && word.charAt(i) != "." && word.charAt(i) != '/' && word.charAt(i) != '&') {
+            if(!this.isUpperCaseLetter(word.charAt(i)) && word.charAt(i) != "." && word.charAt(i) != '/' && word.charAt(i) != '&' && (i != word.length - 1 || word.charAt(i) != 's') && (i != word.length - 2 || word.charAt(i) != '\'')) {
                 isUpeprcaseAcronym = false;
                 break;
             }
         }
-
         if(!isLowercaseAcronym && !isUpeprcaseAcronym) {
             return false;
         }
