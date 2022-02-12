@@ -114,11 +114,23 @@ class WordScrape {
         return word.includes("-") && !word.startsWith("-") && !word.endsWith("-");
     }
 
+    indexOfFirstLetter(string) {
+        var firstLetterIndex = null;
+        for(let i = 0; i < string.length; i++) {
+            if(this.isLetter(string.charAt(i))) {
+                firstLetterIndex = i;
+                break;
+            }
+        }
+        return firstLetterIndex;
+    }
+
     isProper(word) {
-        if(!this.isUpperCaseLetter(word.charAt(0))) {
+        var firstLetterAt = this.indexOfFirstLetter(word);
+        if(firstLetterAt == null || !this.isUpperCaseLetter(word.charAt(firstLetterAt))) {
             return false;
         }
-        for(let i = 1; i < word.length; i++) {
+        for(let i = firstLetterAt + 1; i < word.length; i++) {
             if(this.isLetter(word.charAt(i)) && !this.isLowerCaseLetter(word.charAt(i))) {
                 return false;
             }
