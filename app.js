@@ -249,6 +249,9 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
 })
 
 function downloadWordsFromMerriamWebster() {
+    if(downloadInProgress) {
+        return;
+    }
     document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'none';
     downloadInProgress = true;
     var progBar = document.getElementById("merriamWebsterDownloadProgressBar");
