@@ -267,6 +267,7 @@ function downloadWordsFromMerriamWebster() {
         document.getElementById("MerriamWebsterDownloadSuccessMsg").innerText = "Successfully imported " + words.length + " words!";
         document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'block';
         downloadInProgress = false;
+        document.getElementById('nextBtn').style.display = "block";
     };
     var includeHyphenated = document.getElementById('merriamWebsterOptionIncludeHyphenated').checked;
     var includeProper = document.getElementById('merriamWebsterOptionIncludeProper').checked;

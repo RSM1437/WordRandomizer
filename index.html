@@ -19,6 +19,7 @@
                 var targetClass = $("." + inputValue);
                 $(".wordSource").not(targetClass).hide();
                 $(targetClass).show();
+                document.getElementById('nextBtn').style.display = document.getElementById('wordSourceMerriamWebster').checked ? "none" : "block";
             });
         });
         </script>
@@ -78,7 +79,7 @@
             </div>
             <br>
             <br>
-            <a href="javascript:nextPage()" style="margin-left:10px">Next</a>
+            <a href="javascript:nextPage()" style="margin-left:10px" id="nextBtn">Next</a>
         </div>
         <div id="page2" style="display:none;">
             <br>
