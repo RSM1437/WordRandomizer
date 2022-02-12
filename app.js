@@ -252,6 +252,7 @@ function downloadWordsFromMerriamWebster() {
     if(downloadInProgress) {
         return;
     }
+    document.getElementById("mwImportBtn").disabled = true;
     document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'none';
     downloadInProgress = true;
     var progBar = document.getElementById("merriamWebsterDownloadProgressBar");
@@ -271,6 +272,7 @@ function downloadWordsFromMerriamWebster() {
         document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'block';
         downloadInProgress = false;
         document.getElementById('nextBtn').style.display = "block";
+        document.getElementById("mwImportBtn").disabled = false;
     };
     var includeHyphenated = document.getElementById('merriamWebsterOptionIncludeHyphenated').checked;
     var includeProper = document.getElementById('merriamWebsterOptionIncludeProper').checked;
