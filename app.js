@@ -6,6 +6,7 @@ var generatingPdf = false;
 var pdfWorker;
 var merriamWebsterWords = [];
 var downloadInProgress = false;
+var refPdf = null;
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
@@ -281,4 +282,55 @@ function downloadWordsFromMerriamWebster() {
     var includeSuffixes = document.getElementById('merriamWebsterOptionIncludeSuffixes').checked;
     var includeAcronyms = document.getElementById('merriamWebsterOptionIncludeAcronyms').checked;
     getWordsFromMerriamWebster(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete);
+}
+         
+document.getElementById('refPdfInput').addEventListener('change', function() {
+    var file = this.files[0];
+    var fileReader = new FileReader();  
+    fileReader.onload = function() {
+        //getPdfText(this.result).then(text => console.log(text));
+        refPdf = this.result;
+        document.getElementById('genPdfBtn').disabled = false;
+    };
+    if(file instanceof Blob) {
+        fileReader.readAsArrayBuffer(file);
+    }
+    else {
+        refPdf = null;
+        document.getElementById('genPdfBtn').disabled = true;
+    }
+});
+
+function getPdfText(file) {
+    var typedarray = new Uint8Array(file);
+    const loadingTask = pdfjsLib.getDocument(typedarray);
+    return loadingTask.promise.then(pdf => {
+        var maxPages = pdf.numPages;
+        var countPromises = [];
+        for (var j = 1; j <= maxPages; j++) {
+            var page = pdf.getPage(j);
+            countPromises.push(page.then(function(page) {
+                    var textContent = page.getTextContent();
+                    return textContent.then(function(text){
+                        return text.items.map(function (s) { return s.str; }).join('');
+                });
+            }));
+        }
+        return Promise.all(countPromises).then(function (texts) {
+            return texts.join('');
+        });
+    });
+}
+
+function onClickHighlightNewWords() {
+    var checked = document.getElementById('highlightNewWordsCheckbox').checked;
+    var genPdfBtn = document.getElementById('genPdfBtn');
+    document.getElementById('refPdfOptions').style.display = checked ? 'block' : 'none';
+    if(checked && refPdf == null) {
+        genPdfBtn.disabled = true;
+    }
+
+    if(!checked) {
+        genPdfBtn.disabled = false;
+    }
 }
