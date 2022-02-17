@@ -58,6 +58,9 @@ class WordScrape {
                     newWords.forEach(newWord => {
                         newWord = this.cleanSpecialChars(newWord);
                         if(this.shouldAdd(newWord)) {
+                            if(this.isPhrase(newWord)) {
+                                newWord = this.wrapInQuotes(newWord);
+                            }
                             words.push(newWord);
                         }
                     });
@@ -169,6 +172,18 @@ class WordScrape {
             return false;
         }
         return true;
+    }
+
+    wrapInQuotes(str) {
+        var newString = "";
+        if(!str.startsWith('"')) {
+            newString += '"';
+        }
+        newString += str;
+        if(!str.endsWith('"')) {
+            newString += '"';
+        }
+        return newString;
     }
 }
 
