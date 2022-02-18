@@ -340,7 +340,7 @@ function getPdfText(file) {
                     countPromises.push(page.then(function(page) {
                             var textContent = page.getTextContent();
                             return textContent.then(function(text){
-                                return text.items.map(function (s) { return s.str; }).join('');
+                                return text.items.map(function (s) { return s.str; }).filter(s => s != ' ').join(' ');
                         });
                     }));
                 }
@@ -373,7 +373,6 @@ function getRefPdfWords() {
     if(refPdfWords == null) {
         refPdfWords = new Set();
         promise = getPdfText(refPdf).then(text => {
-            console.log(text);
             var nextWord = "";
             var inQuotes = false;
             for(var i = 0; i < text.length; i++) {
