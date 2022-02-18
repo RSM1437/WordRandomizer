@@ -320,6 +320,7 @@ document.getElementById('refPdfInput').addEventListener('change', function() {
     if(file instanceof Blob) {
         refPdf = file;
         refPdfWords = null;
+        document.getElementById('genPdfBtn').disabled = false;
     }
     else {
         refPdf = null;
