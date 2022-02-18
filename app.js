@@ -18,7 +18,10 @@ function genPDF() {
         self.addEventListener('message', function(e) {
             var words = e.data.words;
             if(words.length == 0) {
-                self.postMessage([]);
+                self.postMessage({
+                    row: [],
+                    refWords: e.data.refWords
+                });
                 return;
             }
 
@@ -37,7 +40,10 @@ function genPDF() {
                 ++colIndex;
                 if(colIndex == numColumns) {
                     colIndex = 0;
-                    self.postMessage(row);
+                    self.postMessage({
+                        row: row,
+                        refWords: e.data.refWords
+                    });
                     row = [];
                 }
             }
@@ -61,23 +67,24 @@ function genPDF() {
     var borderWidth = document.getElementById('cellBordersOption').checked ? 0.1 : 0;
     var outputFilename = getPdfFilename();
     pdfWorker.addEventListener('message', function(e) {
-        var refWords = e.data.refWords;
         doc.autoTable({
             body: [e.data.row],
             startY: doc.lastAutoTable ? doc.lastAutoTable.finalY : 20,
             didParseCell: function (data) {
                 if(data.cell.raw != undefined) {
-                    if(refWords != null && !refWords.has(data.cell.raw)) {
+                    if(e.data.refWords != undefined && !e.data.refWords.has(data.cell.raw)) {
                         data.cell.styles.fillColor = hexToRgb(document.getElementById('highlightColorOption').value);
+                        data.cell.styles.textColor = hexToRgb(document.getElementById('highlightedTextColorOption').value);
                     }
                     else {
                         data.cell.styles.fillColor = getCellColor(data.column.index);
+                        data.cell.styles.textColor = textColor;
                     }
                 }
                 else {
                     data.cell.styles.fillColor = blankCellColor;
                 }
-                data.cell.styles.textColor = textColor;
+                
                 data.cell.styles.lineWidth = borderWidth;
                 data.cell.styles.lineColor = [0, 0, 0];
                 data.cell.styles.fontStyle = fontStyle;
@@ -366,6 +373,7 @@ function getRefPdfWords() {
     if(refPdfWords == null) {
         refPdfWords = new Set();
         promise = getPdfText(refPdf).then(text => {
+            console.log(text);
             var nextWord = "";
             var inQuotes = false;
             for(var i = 0; i < text.length; i++) {
