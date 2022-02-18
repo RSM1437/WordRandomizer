@@ -7,6 +7,7 @@ var pdfWorker;
 var merriamWebsterWords = [];
 var downloadInProgress = false;
 var refPdf = null;
+var refPdfWords = null;
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
@@ -41,7 +42,10 @@ function genPDF() {
                 }
             }
             if(row.length > 0) {
-                self.postMessage(row);
+                self.postMessage({
+                    row: row,
+                    refWords: e.data.refWords
+                });
                 row = [];
             }
         }, false);
@@ -57,12 +61,18 @@ function genPDF() {
     var borderWidth = document.getElementById('cellBordersOption').checked ? 0.1 : 0;
     var outputFilename = getPdfFilename();
     pdfWorker.addEventListener('message', function(e) {
+        var refWords = e.data.refWords;
         doc.autoTable({
-            body: [e.data],
+            body: [e.data.row],
             startY: doc.lastAutoTable ? doc.lastAutoTable.finalY : 20,
             didParseCell: function (data) {
                 if(data.cell.raw != undefined) {
-                    data.cell.styles.fillColor = getCellColor(data.column.index);
+                    if(refWords != null && !refWords.has(data.cell.raw)) {
+                        data.cell.styles.fillColor = hexToRgb(document.getElementById('highlightColorOption').value);
+                    }
+                    else {
+                        data.cell.styles.fillColor = getCellColor(data.column.index);
+                    }
                 }
                 else {
                     data.cell.styles.fillColor = blankCellColor;
@@ -75,7 +85,7 @@ function genPDF() {
                 data.cell.styles.cellWidth = 181 / numColumns;
         }});
         var progBar = document.getElementById("pdfProgressBar");
-        wordsProcessed += e.data.length;
+        wordsProcessed += e.data.row.length;
         var progPct = numWords > 0 ? Math.round((wordsProcessed / numWords) * 100) : 100;
         progBar.style.width = progPct + "%";
         progBar.innerHTML = progPct + "%";
@@ -94,10 +104,24 @@ function genPDF() {
     progBar.style.width = 0 + "%";
     progBar.innerHTML = 0 + "%";
     document.getElementById('pdfCancelBtn').style.display = "block";
-    pdfWorker.postMessage({
-        numColumns: numColumns,
-        words: words,
-    });
+    var highlightNewWords = document.getElementById('highlightNewWordsCheckbox').checked;
+    if(highlightNewWords) {
+        getRefPdfWords().then(refWords => {
+            pdfWorker.postMessage({
+                numColumns: numColumns,
+                words: words,
+                refWords: refWords
+            });
+        });
+    }
+    else {
+        pdfWorker.postMessage({
+            numColumns: numColumns,
+            words: words,
+            refWords: null
+        });
+    }
+    
 }
 
 function cancelPDF() {
@@ -286,14 +310,9 @@ function downloadWordsFromMerriamWebster() {
          
 document.getElementById('refPdfInput').addEventListener('change', function() {
     var file = this.files[0];
-    var fileReader = new FileReader();  
-    fileReader.onload = function() {
-        //getPdfText(this.result).then(text => console.log(text));
-        refPdf = this.result;
-        document.getElementById('genPdfBtn').disabled = false;
-    };
     if(file instanceof Blob) {
-        fileReader.readAsArrayBuffer(file);
+        refPdf = file;
+        refPdfWords = null;
     }
     else {
         refPdf = null;
@@ -302,23 +321,28 @@ document.getElementById('refPdfInput').addEventListener('change', function() {
 });
 
 function getPdfText(file) {
-    var typedarray = new Uint8Array(file);
-    const loadingTask = pdfjsLib.getDocument(typedarray);
-    return loadingTask.promise.then(pdf => {
-        var maxPages = pdf.numPages;
-        var countPromises = [];
-        for (var j = 1; j <= maxPages; j++) {
-            var page = pdf.getPage(j);
-            countPromises.push(page.then(function(page) {
-                    var textContent = page.getTextContent();
-                    return textContent.then(function(text){
-                        return text.items.map(function (s) { return s.str; }).join('');
+    return new Promise(function(onResolve) {
+        var fileReader = new FileReader();
+        fileReader.onload = function() {
+            const loadingTask = pdfjsLib.getDocument(this.result);
+            loadingTask.promise.then(pdf => {
+                var maxPages = pdf.numPages;
+                var countPromises = [];
+                for (var j = 1; j <= maxPages; j++) {
+                    var page = pdf.getPage(j);
+                    countPromises.push(page.then(function(page) {
+                            var textContent = page.getTextContent();
+                            return textContent.then(function(text){
+                                return text.items.map(function (s) { return s.str; }).join('');
+                        });
+                    }));
+                }
+                return Promise.all(countPromises).then(function (texts) {
+                    onResolve(texts.join(''));
                 });
-            }));
-        }
-        return Promise.all(countPromises).then(function (texts) {
-            return texts.join('');
-        });
+            });
+        };
+        fileReader.readAsArrayBuffer(file);
     });
 }
 
@@ -333,4 +357,35 @@ function onClickHighlightNewWords() {
     if(!checked) {
         genPdfBtn.disabled = false;
     }
+}
+
+function getRefPdfWords() {
+    var promise = new Promise(function(onResolve) {
+        onResolve(refPdfWords);
+    });
+    if(refPdfWords == null) {
+        refPdfWords = new Set();
+        promise = getPdfText(refPdf).then(text => {
+            var nextWord = "";
+            var inQuotes = false;
+            for(var i = 0; i < text.length; i++) {
+                var c = text[i];
+                if(c == '"') {
+                    inQuotes = !inQuotes;
+                }
+                else if(c == ' ') {
+                    refPdfWords.add(nextWord);
+                    nextWord = "";
+                }
+                else {
+                    nextWord += c;
+                }
+            }
+            if(nextWord.length > 0) {
+                refPdfWords.add(nextWord);
+            }
+            return refPdfWords;
+        });
+    }
+    return promise;
 }
