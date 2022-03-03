@@ -334,8 +334,15 @@ function downloadWordsFromOxfordEnglishDictionary() {
     }
     else {
         downloadInProgress = true;
+        var progBar = document.getElementById("dictionaryDownloadProgressBar");
+        progBar.style.display = "block";
+        var updateProgress = function(progressPct) {
+            progBar.style.width = progressPct + "%";
+            progBar.innerHTML = progressPct + "%";
+        };
+        var downloadMsgElement = document.getElementById("DictionaryDownloadSuccessMsg");
+        updateProgress(1);
         document.getElementById('dictionaryImportButton').disabled = true;
-        console.log("Making request...");
         const API_URL = 'https://blix6ztyb0.execute-api.us-east-1.amazonaws.com/default/GetWordsFromOed';
         $.ajax({
             url: API_URL + '?username=' + username + '&password=' + password + '&letter=z',
@@ -343,11 +350,16 @@ function downloadWordsFromOxfordEnglishDictionary() {
             success: function(result) {
                 const resObj = JSON.parse(result);
                 oedWords = resObj.words.split("\n");
-                console.log("Got " + oedWords.length + " words!");
+                downloadMsgElement.style.display = 'block';
+                downloadMsgElement.innerHTML = 'Successfully imported ' + oedWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
                 downloadInProgress = false;
                 document.getElementById('dictionaryImportButton').disabled = false;
+                updateProgress(100);
             },
             error: function(error) {
+                progBar.style.display = "none";
+                downloadMsgElement.style.display = 'none';
+
                 if(!error.loginSuccessful) {
                     alert('Login failed. Please check your username and password. They should be the same username and password you log into oed.com with.  You can get more information about registering for an OED account at public.oed.com/help/.');
                 }
