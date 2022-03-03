@@ -30,6 +30,9 @@
                     $(targetClass).show();
                     document.getElementById('nextBtn').style.display = document.getElementById('wordSourceDictionary').checked ? "none" : "block";
                 }
+                else if($(this).attr('id').startsWith('dictionaryOption')) {
+                    document.getElementById('dictionaryLogin').style.display = document.getElementById('dictionaryOptionOxfordEnglish').checked ? "block" : "none";
+                }
             });
         });
         </script>
@@ -61,6 +64,11 @@
                     <br>
                     <input type="radio" id="dictionaryOptionOxfordEnglish" name="dictionaryOption" value="OxfordEnglish">
                     <label for="dictionaryOptionOxfordEnglish">Oxford English Dictionary (oed.com)</label>
+                </div>
+                <div id="dictionaryLogin" hidden>
+                    <label style="padding-left:15px">Username: </label><input type="text" id="dictionaryUsername">
+                    <br>
+                    <label style="padding-left:15px">Password:  </label><input type="password" id="dictionaryPassword">
                 </div>
                 <br/>
                 <div id="wordFilters">

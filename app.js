@@ -5,6 +5,7 @@ var readingFile = false;
 var generatingPdf = false;
 var pdfWorker;
 var merriamWebsterWords = [];
+var oedWords = [];
 var downloadInProgress = false;
 var refPdf = null;
 var refPdfWords = null;
@@ -284,6 +285,16 @@ function downloadWordsFromDictionary() {
     if(downloadInProgress) {
         return;
     }
+
+    if(document.getElementById('dictionaryOptionMerriamWebster').checked) {
+        downloadWordsFromMerriamWebster();
+    }
+    else {
+        downloadWordsFromOxfordEnglishDictionary();
+    }
+}
+
+function downloadWordsFromMerriamWebster() {
     document.getElementById("dictionaryImportButton").disabled = true;
     document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
     downloadInProgress = true;
@@ -313,6 +324,48 @@ function downloadWordsFromDictionary() {
     var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
     var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
     getWordsFromMerriamWebster(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete);
+}
+
+function downloadWordsFromOxfordEnglishDictionary() {
+    let username = document.getElementById('dictionaryUsername').value;
+    let password = document.getElementById('dictionaryPassword').value;
+    if(username.length == 0 || password.length == 0) {
+        alert('You must enter a username and password to continue. They should be the same username and password you log into oed.com with. You can get more information about registering for an OED account at public.oed.com/help/.');
+    }
+    else {
+        downloadInProgress = true;
+        document.getElementById('dictionaryImportButton').disabled = true;
+        console.log("Making request...");
+        const API_URL = 'https://blix6ztyb0.execute-api.us-east-1.amazonaws.com/default/GetWordsFromOed';
+        $.ajax({
+            url: API_URL + '?username=' + username + '&password=' + password + '&letter=z',
+            type: 'GET',
+            success: function(result) {
+                const resObj = JSON.parse(result);
+                oedWords = resObj.words.split("\n");
+                console.log("Got " + oedWords.length + " words!");
+                downloadInProgress = false;
+                document.getElementById('dictionaryImportButton').disabled = false;
+            },
+            error: function(error) {
+                if(!error.loginSuccessful) {
+                    alert('Login failed. Please check your username and password. They should be the same username and password you log into oed.com with.  You can get more information about registering for an OED account at public.oed.com/help/.');
+                }
+                else if(!error.scrapingSuccessful) {
+                    alert('Unexpected error.');
+                }
+                else if(error.errorMsg != undefined && error.errorMsg.length > 0) {
+                    alert(error.errorMsg);
+                }
+                else {
+                    alert("Unknown error.");
+                }
+                
+                downloadInProgress = false;
+                document.getElementById('dictionaryImportButton').disabled = false;
+            }
+        });
+    }
 }
          
 document.getElementById('refPdfInput').addEventListener('change', function() {
