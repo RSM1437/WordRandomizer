@@ -24,10 +24,12 @@
         $(document).ready(function(){
             $('input[type="radio"]').click(function(){
                 var inputValue = $(this).attr("value");
-                var targetClass = $("." + inputValue);
-                $(".wordSource").not(targetClass).hide();
-                $(targetClass).show();
-                document.getElementById('nextBtn').style.display = document.getElementById('wordSourceDictionary').checked ? "none" : "block";
+                if($(this).attr('id').startsWith('wordSource')) {
+                    var targetClass = $("." + inputValue);
+                    $(".wordSource").not(targetClass).hide();
+                    $(targetClass).show();
+                    document.getElementById('nextBtn').style.display = document.getElementById('wordSourceDictionary').checked ? "none" : "block";
+                }
             });
         });
         </script>
@@ -53,6 +55,14 @@
                 <div id="fileUploadProgressBar" class="progressBarFilled" hidden></div>
             </div>
             <div class="wordSource Dictionary" style="padding-left:10px" hidden>
+                <div>
+                    <input type="radio" id="dictionaryOptionMerriamWebster" name="dictionaryOption" value="Merriam-Webster" checked="checked">
+                    <label for="dictionaryOptionMerriamWebster">Merriam-Webster.com</label>
+                    <br>
+                    <input type="radio" id="dictionaryOptionOxfordEnglish" name="dictionaryOption" value="OxfordEnglish">
+                    <label for="dictionaryOptionOxfordEnglish">Oxford English Dictionary (oed.com)</label>
+                </div>
+                <br/>
                 <div id="wordFilters">
                     Include:
                     <br>
