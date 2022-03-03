@@ -172,7 +172,7 @@ function getWords() {
     else if (document.getElementById("wordSourceFile").checked) {
         words = getWordsFromText(fileText);
     }
-    else if(document.getElementById("wordSourceMerriamWebster").checked) {
+    else if(document.getElementById("wordSourceDictionary").checked) {
         words = merriamWebsterWords;
     }
     return words;
@@ -280,14 +280,14 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
     fileWorker.postMessage(this.files[0]);
 })
 
-function downloadWordsFromMerriamWebster() {
+function downloadWordsFromDictionary() {
     if(downloadInProgress) {
         return;
     }
-    document.getElementById("mwImportBtn").disabled = true;
-    document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'none';
+    document.getElementById("dictionaryImportButton").disabled = true;
+    document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
     downloadInProgress = true;
-    var progBar = document.getElementById("merriamWebsterDownloadProgressBar");
+    var progBar = document.getElementById("dictionaryDownloadProgressBar");
     progBar.style.display = "block";
     var updateProgress = function(progressPct) {
         progBar.style.width = progressPct + "%";
@@ -300,18 +300,18 @@ function downloadWordsFromMerriamWebster() {
     var onComplete = function(words) {
         merriamWebsterWords = words;
         updateProgress(100);
-        document.getElementById("MerriamWebsterDownloadSuccessMsg").innerText = "Successfully imported " + words.length.toLocaleString() + " words from Merriam-Webster!";
-        document.getElementById("MerriamWebsterDownloadSuccessMsg").style.display = 'block';
+        document.getElementById("DictionaryDownloadSuccessMsg").innerText = "Successfully imported " + words.length.toLocaleString() + " words from Merriam-Webster!";
+        document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'block';
         downloadInProgress = false;
         document.getElementById('nextBtn').style.display = "block";
-        document.getElementById("mwImportBtn").disabled = false;
+        document.getElementById("dictionaryImportButton").disabled = false;
     };
-    var includeHyphenated = document.getElementById('merriamWebsterOptionIncludeHyphenated').checked;
-    var includeProper = document.getElementById('merriamWebsterOptionIncludeProper').checked;
-    var includePhrases = document.getElementById('merriamWebsterOptionIncludePhrases').checked;
-    var includePrefixes = document.getElementById('merriamWebsterOptionIncludePrefixes').checked;
-    var includeSuffixes = document.getElementById('merriamWebsterOptionIncludeSuffixes').checked;
-    var includeAcronyms = document.getElementById('merriamWebsterOptionIncludeAcronyms').checked;
+    var includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
+    var includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
+    var includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
+    var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
+    var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
+    var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
     getWordsFromMerriamWebster(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete);
 }
          

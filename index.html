@@ -27,7 +27,7 @@
                 var targetClass = $("." + inputValue);
                 $(".wordSource").not(targetClass).hide();
                 $(targetClass).show();
-                document.getElementById('nextBtn').style.display = document.getElementById('wordSourceMerriamWebster').checked ? "none" : "block";
+                document.getElementById('nextBtn').style.display = document.getElementById('wordSourceDictionary').checked ? "none" : "block";
             });
         });
         </script>
@@ -43,8 +43,8 @@
                 <input type="radio" id="wordSourceFile" name="wordSource" value="File">
                 <label for="wordSourceFile">File</label>
                 <br>
-                <input type="radio" id="wordSourceMerriamWebster" name="wordSource" value="Merriam-Webster">
-                <label for="wordSourceMerriamWebster">Merriam-Webster</label>
+                <input type="radio" id="wordSourceDictionary" name="wordSource" value="Dictionary">
+                <label for="wordSourceDictionary">Dictionary</label>
             </div>
             <br>
             <textarea class="wordSource Text" name="wordSourceText" id="wordSourceTextarea" rows="10" cols="40" placeholder="Type or paste words here"></textarea>
@@ -52,37 +52,37 @@
             <div id="fileUploadProgress" class="progressBar wordSource File" hidden>
                 <div id="fileUploadProgressBar" class="progressBarFilled" hidden></div>
             </div>
-            <div class="wordSource Merriam-Webster" style="padding-left:10px" hidden>
-                <div id="merriamWebsterOptions">
+            <div class="wordSource Dictionary" style="padding-left:10px" hidden>
+                <div id="wordFilters">
                     Include:
                     <br>
-                    <input type="checkbox" id="merriamWebsterOptionIncludeHyphenated" name="merriamWebsterOptionIncludeHyphenated" value="includeHyphenated">
-                    <label for="merriamWebsterOptionIncludeHyphenated">Hyphenated Words (like "face-off")</label>
+                    <input type="checkbox" id="wordFilterOptionIncludeHyphenated" name="wordFilterOptionIncludeHyphenated" value="includeHyphenated">
+                    <label for="wordFilterOptionIncludeHyphenated">Hyphenated Words (like "face-off")</label>
                     <br>
-                    <input type="checkbox" id="merriamWebsterOptionIncludeProper" name="merriamWebsterOptionIncludeProper" value="includeProper">
-                    <label for="merriamWebsterOptionIncludeProper">Proper nouns (like "Wisconsin")</label>
+                    <input type="checkbox" id="wordFilterOptionIncludeProper" name="wordFilterOptionIncludeProper" value="includeProper">
+                    <label for="wordFilterOptionIncludeProper">Proper nouns (like "Wisconsin")</label>
                     <br>
-                    <input type="checkbox" id="merriamWebsterOptionIncludePhrases" name="merriamWebsterOptionIncludePhrases" value="includePhrases">
-                    <label for="merriamWebsterOptionIncludePhrases">Phrases (like "a quarter after")</label>
+                    <input type="checkbox" id="wordFilterOptionIncludePhrases" name="wordFilterOptionIncludePhrases" value="includePhrases">
+                    <label for="wordFilterOptionIncludePhrases">Phrases (like "a quarter after")</label>
                     <br>
-                    <input type="checkbox" id="merriamWebsterOptionIncludePrefixes" name="merriamWebsterOptionIncludePrefixes" value="includePrefixes">
-                    <label for="merriamWebsterOptionIncludePrefixes">Prefixes (like "anti-")</label>
+                    <input type="checkbox" id="wordFilterOptionIncludePrefixes" name="wordFilterOptionIncludePrefixes" value="includePrefixes">
+                    <label for="wordFilterOptionIncludePrefixes">Prefixes (like "anti-")</label>
                     <br>
-                    <input type="checkbox" id="merriamWebsterOptionIncludeSuffixes" name="merriamWebsterOptionIncludeSuffixes" value="includeSuffixes">
-                    <label for="merriamWebsterOptionIncludeSuffixes">Suffixes (like "-able")</label>
+                    <input type="checkbox" id="wordFilterOptionIncludeSuffixes" name="wordFilterOptionIncludeSuffixes" value="includeSuffixes">
+                    <label for="wordFilterOptionIncludeSuffixes">Suffixes (like "-able")</label>
                     <br>
-                    <input type="checkbox" id="merriamWebsterOptionIncludeAcronyms" name="merriamWebsterOptionIncludeAcronyms" value="includeAcronyms">
-                    <label for="merriamWebsterOptionIncludeAcronyms">Acronyms (like "G.O.A.T")</label>
+                    <input type="checkbox" id="wordFilterOptionIncludeAcronyms" name="wordFilterOptionIncludeAcronyms" value="includeAcronyms">
+                    <label for="wordFilterOptionIncludeAcronyms">Acronyms (like "G.O.A.T")</label>
                     <br>
                     <br>
                 </div>
-                <button type="button" onClick="javascript:downloadWordsFromMerriamWebster()" id="mwImportBtn">Import Words</button>
+                <button type="button" onClick="javascript:downloadWordsFromDictionary()" id="dictionaryImportButton">Import Words</button>
                 <br>
-                <div id="merriamWebsterDownloadProgress" class="progressBar">
-                    <div id="merriamWebsterDownloadProgressBar" class="progressBarFilled" hidden></div>
+                <div id="dictionaryDownloadProgress" class="progressBar">
+                    <div id="dictionaryDownloadProgressBar" class="progressBarFilled" hidden></div>
                 </div>
                 <br>
-                <div id="MerriamWebsterDownloadSuccessMsg" class="center" hidden>
+                <div id="DictionaryDownloadSuccessMsg" class="center" hidden>
                 </div>
             </div>
             <br>
