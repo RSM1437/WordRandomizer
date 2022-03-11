@@ -386,8 +386,17 @@ function downloadWordsFromOxfordEnglishDictionary() {
     };
 
     if(oedWords.length > 0) {
-        filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}, (newWords) => {
+        updateProgress(1);
+        downloadInProgress = true;
+        downloadMsgElement.style.display = 'none';
+        document.getElementById('dictionaryImportButton').disabled = true;
+        new Promise((resolve) => {
+            filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}, (newWords) => {
+                resolve(newWords);
+            });
+        }).then((newWords) => {
             filteredDictionaryWords = newWords;
+            downloadMsgElement.style.display = 'block';
             downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
             downloadInProgress = false;
             document.getElementById('dictionaryImportButton').disabled = false;
