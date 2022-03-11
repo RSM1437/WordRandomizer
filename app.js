@@ -42,12 +42,6 @@ function genPDF() {
             }
 
             var numColumns = e.data.numColumns;
-            let currentIndex = words.length,  randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [words[currentIndex], words[randomIndex]] = [words[randomIndex], words[currentIndex]];
-            }
             var row = [];
             var colIndex = 0;
             
@@ -74,6 +68,7 @@ function genPDF() {
     }));
     var wordsProcessed = 0;
     var words = getWords();
+    shuffle(words);
     var numWords = words.length;
     var numColumns = document.getElementById('numColumnsOption').value;
     var doc = new jsPDF();
