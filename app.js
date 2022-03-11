@@ -5,10 +5,25 @@ var readingFile = false;
 var generatingPdf = false;
 var pdfWorker;
 var merriamWebsterWords = [];
+var filteredDictionaryWords = [];
 var oedWords = [];
 var downloadInProgress = false;
 var refPdf = null;
 var refPdfWords = null;
+
+// Initialize the Amazon Cognito credentials provider
+AWS.config.region = 'us-east-1'; // Region
+AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    //this pool id is from a new Cognito identity pool confifured to be able to execute the proper AWS lambda function
+    IdentityPoolId: 'us-east-1:3275e330-53dc-4449-9a73-5f89165171a0',
+});
+var lambdaOptions = {
+    maxRetries: 1,
+    httpOptions: {
+        timeout: 600000
+    }
+};
+var lambda = new AWS.Lambda(lambdaOptions);
 
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
@@ -174,7 +189,7 @@ function getWords() {
         words = getWordsFromText(fileText);
     }
     else if(document.getElementById("wordSourceDictionary").checked) {
-        words = merriamWebsterWords;
+        words = filteredDictionaryWords;
     }
     return words;
 }
@@ -295,38 +310,91 @@ function downloadWordsFromDictionary() {
 }
 
 function downloadWordsFromMerriamWebster() {
-    document.getElementById("dictionaryImportButton").disabled = true;
-    document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
-    downloadInProgress = true;
+    var dispRes = function() {
+        document.getElementById("DictionaryDownloadSuccessMsg").innerText = "Successfully imported " + filteredDictionaryWords.length.toLocaleString() + " words from Merriam-Webster!";
+        document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'block';
+        document.getElementById('nextBtn').style.display = "block";
+        document.getElementById("dictionaryImportButton").disabled = false;
+    }
     var progBar = document.getElementById("dictionaryDownloadProgressBar");
-    progBar.style.display = "block";
     var updateProgress = function(progressPct) {
         progBar.style.width = progressPct + "%";
         progBar.innerHTML = progressPct + "%";
     };
+    document.getElementById("dictionaryImportButton").disabled = true;
+    document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
+    downloadInProgress = true;
+    progBar.style.display = "block";
     updateProgress(1);
+    if(merriamWebsterWords.length > 0) {
+        downloadInProgress = true;
+        filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress * 100)), (newWords) => {
+            filteredDictionaryWords = newWords;
+            updateProgress(100);
+            dispRes();
+            downloadInProgress = false;
+        });
+        return;
+    }
+
     var onProgress = function(progressPct) {
         updateProgress(progressPct);
     }
-    var onComplete = function(words) {
-        merriamWebsterWords = words;
-        updateProgress(100);
-        document.getElementById("DictionaryDownloadSuccessMsg").innerText = "Successfully imported " + words.length.toLocaleString() + " words from Merriam-Webster!";
-        document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'block';
-        downloadInProgress = false;
-        document.getElementById('nextBtn').style.display = "block";
-        document.getElementById("dictionaryImportButton").disabled = false;
+    var onComplete = function(downloadedWords) {
+        merriamWebsterWords = downloadedWords;
+        filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
+            filteredDictionaryWords = newWords;
+            updateProgress(100);
+            dispRes();
+            downloadInProgress = false;
+        });
     };
-    var includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
-    var includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
-    var includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
-    var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
-    var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
-    var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
-    getWordsFromMerriamWebster(includeHyphenated, includeProper, includePhrases, includePrefixes, includeSuffixes, includeAcronyms, onProgress, onComplete);
+    getWordsFromMerriamWebster(onProgress, onComplete);
+}
+
+function filterDictionaryWords(words, progressCallback, completeCallback) {
+    var worker = new Worker(getScriptPath(function(){
+        self.postMessage({});
+    }));
+    worker.addEventListener('message', function(e) {
+        var includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
+        var includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
+        var includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
+        var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
+        var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
+        var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
+        var wordFilter = new WordFilter();
+        wordFilter.includeHyphenated = includeHyphenated;
+        wordFilter.includeProper = includeProper;
+        wordFilter.includePhrases = includePhrases;
+        wordFilter.includePrefixes = includePrefixes;
+        wordFilter.includeSuffixes = includeSuffixes;
+        wordFilter.includeAcronyms = includeAcronyms;
+        completeCallback(wordFilter.filter(words, progressCallback));
+    }, false);
+    worker.postMessage({});
 }
 
 function downloadWordsFromOxfordEnglishDictionary() {
+    var downloadMsgElement = document.getElementById("DictionaryDownloadSuccessMsg");
+    var progBar = document.getElementById("dictionaryDownloadProgressBar");
+    progBar.style.display = "block";
+    var updateProgress = function(progressPct) {
+        progressPct = Math.round(progressPct);
+        progBar.style.width = progressPct + "%";
+        progBar.innerHTML = progressPct + "%";
+    };
+
+    if(oedWords.length > 0) {
+        filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}, (newWords) => {
+            filteredDictionaryWords = newWords;
+            downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
+            downloadInProgress = false;
+            document.getElementById('dictionaryImportButton').disabled = false;
+        });
+        return;
+    }
+
     let username = document.getElementById('dictionaryUsername').value;
     let password = document.getElementById('dictionaryPassword').value;
     if(username.length == 0 || password.length == 0) {
@@ -334,50 +402,126 @@ function downloadWordsFromOxfordEnglishDictionary() {
     }
     else {
         downloadInProgress = true;
-        var progBar = document.getElementById("dictionaryDownloadProgressBar");
-        progBar.style.display = "block";
-        var updateProgress = function(progressPct) {
-            progBar.style.width = progressPct + "%";
-            progBar.innerHTML = progressPct + "%";
-        };
-        var downloadMsgElement = document.getElementById("DictionaryDownloadSuccessMsg");
+        downloadMsgElement.style.display = 'none';
         updateProgress(1);
         document.getElementById('dictionaryImportButton').disabled = true;
-        const API_URL = 'https://blix6ztyb0.execute-api.us-east-1.amazonaws.com/default/GetWordsFromOed';
-        $.ajax({
-            url: API_URL + '?username=' + username + '&password=' + password + '&letter=z',
-            type: 'GET',
-            success: function(result) {
-                const resObj = JSON.parse(result);
-                oedWords = resObj.words.split("\n");
-                downloadMsgElement.style.display = 'block';
-                downloadMsgElement.innerHTML = 'Successfully imported ' + oedWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
+        const letters = ['x', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'y', 'z'];
+        const pages = new Map();
+        pages.set('s', [1, 200]);
+        pages.set('p', [1, 185]);
+        pages.set('c', [1, 130]);
+        pages.set('m', [1, 130]);
+        const numTotalRequests = 30; //at least one for each letter
+        var progress = 0;
+        const onRequestComplete = function() {
+            progress += 100 / numTotalRequests;
+            updateProgress(progress);
+        };
+        const onOverallSuccess = function(wordLists) {
+            wordLists.forEach(wordList => {
+                wordList.forEach(word => {
+                    oedWords.push(word);
+                });
+            });
+            updateProgress(100);
+            downloadMsgElement.style.display = 'block';
+            filterDictionaryWords(oedWords, (progress) => {}, (newWords) => {
+                filteredDictionaryWords = newWords;
+                downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
                 downloadInProgress = false;
                 document.getElementById('dictionaryImportButton').disabled = false;
-                updateProgress(100);
-            },
-            error: function(error) {
-                progBar.style.display = "none";
-                downloadMsgElement.style.display = 'none';
+            });
+        };
+        const onOverallError = function(errorMsg) {
+            progBar.style.display = "none";
+            downloadMsgElement.style.display = 'none';
+            alert('ERROR: ' + errorMsg);
+            downloadInProgress = false;
+            document.getElementById('dictionaryImportButton').disabled = false;
+        };
 
-                if(!error.loginSuccessful) {
-                    alert('Login failed. Please check your username and password. They should be the same username and password you log into oed.com with.  You can get more information about registering for an OED account at public.oed.com/help/.');
+        var initialRequest = getWordsFromOedStartingWith(letters[0], username, password, 3, onRequestComplete);
+        initialRequest.then(
+            (words) => {
+                words.forEach(word => {
+                    oedWords.push(word);
+                });
+                var requests = [];
+                for(let i = 1; i < letters.length; i++) {
+                    if(!pages.has(letters[i])) {
+                        requests.push(getWordsFromOedStartingWith(letters[i], username, password, 3, onRequestComplete));
+                    }
+                    else {
+                        const pagesForLetter = pages.get(letters[i]);
+                        for(var p = 0; p < pagesForLetter.length; p++) {
+                            if(p < pagesForLetter.length - 1) {
+                                requests.push(getWordsFromOedStartingWith(letters[i], username, password, 3, onRequestComplete, pagesForLetter[p], pagesForLetter[p+1]-1));
+                            }
+                            else {
+                                requests.push(getWordsFromOedStartingWith(letters[i], username, password, 3, onRequestComplete, pagesForLetter[p]));
+                            }
+                        }
+                    }
                 }
-                else if(!error.scrapingSuccessful) {
-                    alert('Unexpected error.');
-                }
-                else if(error.errorMsg != undefined && error.errorMsg.length > 0) {
-                    alert(error.errorMsg);
+                Promise.all(requests).then(onOverallSuccess, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
+            },
+            onOverallError
+        ).catch(error => alert('Unexpected error: ' + error.message));
+    }
+}
+
+function getWordsFromOedStartingWith(letter, username, password, retries, onRequestComplete, firstPageNum=null, lastPageNum=null) {
+    return new Promise((resolve, reject) => {
+        const key = 'hqsadpkhhdvyouwwadaugdoaazlctush';
+        const ivStr = randomBytes(16).toString('hex');
+        let tryCount = 0;
+        const request = () => {
+            var payload = {
+                encryptedUsername: encrypt(username, ivStr, key),
+                encryptedPassword: encrypt(password, ivStr, key),
+                letter: letter,
+                iv: ivStr,
+            };
+            if(firstPageNum != null) payload.firstPageNum = firstPageNum;
+            if(lastPageNum != null) payload.lastPageNum = lastPageNum;
+            const params = {
+                FunctionName: 'GetWordsFromOed',
+                InvocationType: 'RequestResponse',
+                Payload: JSON.stringify(payload),
+            };
+            lambda.invoke(params, function(err, data) {
+                if(err) {
+                    console.log(err, err.stack);
                 }
                 else {
-                    alert("Unknown error.");
+                    let responsePayload = JSON.parse(data.Payload);
+                    if(responsePayload.body != undefined) {
+                        const {words, canRetry, errorMsg} = JSON.parse(responsePayload.body);
+                        let success = responsePayload.statusCode == 200;
+                        if(success) {
+                            onRequestComplete();
+                            let splitWords = words.split("\n");
+                            resolve(splitWords);
+                        }
+                        else {
+                            tryCount++;
+                            if(tryCount < retries && canRetry) {
+                                request();
+                            }
+                            else {
+                                reject(errorMsg);
+                            }
+                            return;
+                        }
+                    }
+                    else {
+                        reject("Function Error.");
+                    }
                 }
-                
-                downloadInProgress = false;
-                document.getElementById('dictionaryImportButton').disabled = false;
-            }
-        });
-    }
+            });
+        };
+        request();
+    });
 }
          
 document.getElementById('refPdfInput').addEventListener('change', function() {
@@ -461,4 +605,20 @@ function getRefPdfWords() {
         });
     }
     return promise;
+}
+
+function formatMsTime(ms) {
+    const msInMinute = 60000;
+    const msInSecond = 1000;
+    var str = "";
+    if(ms >= msInMinute) {
+        str += Math.floor(ms / msInMinute) + " m  ";
+        ms %= msInMinute;
+    }
+    if(ms >= msInSecond || str.length > 0) {
+        str += Math.floor(ms / msInSecond) + " s  ";
+        ms %= msInSecond;
+    }
+    str += Math.round(ms) + " ms";
+    return str;
 }
