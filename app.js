@@ -117,6 +117,7 @@ function genPDF() {
             generatingPdf = false;
             document.getElementById("PdfSuccessMsg").style.display = "block";
             document.getElementById('pdfCancelBtn').style.display = "none";
+            document.getElementById("keepWords").style.display = "block";
             pdfWorker.terminate();
         }
     }, false);
