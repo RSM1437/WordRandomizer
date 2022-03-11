@@ -328,7 +328,11 @@ function downloadWordsFromMerriamWebster() {
     updateProgress(1);
     if(merriamWebsterWords.length > 0) {
         downloadInProgress = true;
-        filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress * 100)), (newWords) => {
+        new Promise((resolve) => {
+            filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress * 100)), (newWords) => {
+                resolve(newWords);
+            });
+        }).then((newWords) => {
             filteredDictionaryWords = newWords;
             updateProgress(100);
             dispRes();
