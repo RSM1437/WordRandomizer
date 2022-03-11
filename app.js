@@ -10,6 +10,7 @@ var oedWords = [];
 var downloadInProgress = false;
 var refPdf = null;
 var refPdfWords = null;
+var prevWords;
 
 // Initialize the Amazon Cognito credentials provider
 AWS.config.region = 'us-east-1'; // Region
@@ -67,8 +68,15 @@ function genPDF() {
         }, false);
     }));
     var wordsProcessed = 0;
-    var words = getWords();
-    shuffle(words);
+    var words = [];
+    if(document.getElementById('keepWordsCheckbox').checked) {
+        words = prevWords;
+    } 
+    else {
+        words = getWords();
+        shuffle(words);
+        prevWords = words;
+    }
     var numWords = words.length;
     var numColumns = document.getElementById('numColumnsOption').value;
     var doc = new jsPDF();
