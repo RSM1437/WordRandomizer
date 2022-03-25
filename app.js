@@ -327,6 +327,7 @@ function downloadWordsFromMerriamWebster() {
     };
     document.getElementById("dictionaryImportButton").disabled = true;
     document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
+    document.getElementById('nextBtn').style.display = "none";
     downloadInProgress = true;
     progBar.style.display = "block";
     updateProgress(1);
@@ -387,6 +388,7 @@ function downloadWordsFromOxfordEnglishDictionary() {
     var downloadMsgElement = document.getElementById("DictionaryDownloadSuccessMsg");
     var progBar = document.getElementById("dictionaryDownloadProgressBar");
     progBar.style.display = "block";
+    document.getElementById('nextBtn').style.display = "none";
     var updateProgress = function(progressPct) {
         progressPct = Math.round(progressPct);
         progBar.style.width = progressPct + "%";
@@ -408,6 +410,7 @@ function downloadWordsFromOxfordEnglishDictionary() {
             downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
             downloadInProgress = false;
             document.getElementById('dictionaryImportButton').disabled = false;
+            document.getElementById('nextBtn').style.display = "block";
         });
         return;
     }
@@ -442,6 +445,7 @@ function downloadWordsFromOxfordEnglishDictionary() {
             });
             updateProgress(100);
             downloadMsgElement.style.display = 'block';
+            document.getElementById('nextBtn').style.display = "block";
             filterDictionaryWords(oedWords, (progress) => {}, (newWords) => {
                 filteredDictionaryWords = newWords;
                 downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
