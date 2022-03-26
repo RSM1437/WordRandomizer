@@ -37,33 +37,40 @@ function genPDF() {
             if(words.length == 0) {
                 self.postMessage({
                     row: [],
-                    refWords: e.data.refWords
                 });
                 return;
             }
 
             var numColumns = e.data.numColumns;
             var row = [];
+            var highlightInRow = new Set();
+            var refWords = e.data.refWords;
             var colIndex = 0;
             
             for(var i = 0; i < words.length; i++) {
-                row.push(words[i]);
+                var word = words[i];
+                row.push(word);
+                if(refWords && !refWords.has(word)) {
+                    highlightInRow.add(word);
+                }
                 ++colIndex;
                 if(colIndex == numColumns) {
                     colIndex = 0;
                     self.postMessage({
                         row: row,
-                        refWords: e.data.refWords
+                        highlight: highlightInRow
                     });
                     row = [];
+                    highlightInRow = new Set();
                 }
             }
             if(row.length > 0) {
                 self.postMessage({
                     row: row,
-                    refWords: e.data.refWords
+                    highlight: highlightInRow
                 });
                 row = [];
+                highlightInRow = new Set();
             }
         }, false);
     }));
@@ -91,7 +98,7 @@ function genPDF() {
             startY: doc.lastAutoTable ? doc.lastAutoTable.finalY : 20,
             didParseCell: function (data) {
                 if(data.cell.raw != undefined) {
-                    if(e.data.refWords != undefined && !e.data.refWords.has(data.cell.raw)) {
+                    if(e.data.highlight && e.data.highlight.has(data.cell.raw)) {
                         data.cell.styles.fillColor = hexToRgb(document.getElementById('highlightColorOption').value);
                         data.cell.styles.textColor = hexToRgb(document.getElementById('highlightedTextColorOption').value);
                     }
