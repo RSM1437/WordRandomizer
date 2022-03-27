@@ -122,7 +122,7 @@ function genPDF() {
         var progPct = numWords > 0 ? Math.round((wordsProcessed / numWords) * 100) : 100;
         progBar.style.width = progPct + "%";
         progBar.innerHTML = progPct + "%";
-        if(progPct == 100) {
+        if(wordsProcessed == numWords) {
             doc.save(outputFilename);
             generatingPdf = false;
             document.getElementById("PdfSuccessMsg").style.display = "block";
