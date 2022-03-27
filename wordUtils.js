@@ -39,7 +39,7 @@ class WordUtils {
     }
 
     static isHyphenated(word) {
-        return word.includes("-") && !word.startsWith("-") && !word.endsWith("-");
+        return word.includes("-") && !word.startsWith("-") && !word.endsWith("-") && !word.includes(" ");
     }
 
     static indexOfFirstLetter(string) {
