@@ -301,6 +301,7 @@ document.getElementById('wordSourceFileInput').addEventListener('change', functi
         if(e.data.hasOwnProperty('text')) {
             readingFile = false;
             fileText = e.data.text;
+            fileWorker.terminate();
         }
     }, false);
     readingFile = true;
@@ -387,6 +388,7 @@ function filterDictionaryWords(words, progressCallback, completeCallback) {
         wordFilter.includeSuffixes = includeSuffixes;
         wordFilter.includeAcronyms = includeAcronyms;
         completeCallback(wordFilter.filter(words, progressCallback));
+        worker.terminate();
     }, false);
     worker.postMessage({});
 }
