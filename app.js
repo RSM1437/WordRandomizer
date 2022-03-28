@@ -97,6 +97,18 @@ function genPDF() {
             body: [e.data.row],
             startY: doc.lastAutoTable ? doc.lastAutoTable.finalY : 20,
             didParseCell: function (data) {
+
+                // resize font if needed so text fits in cell without wrapping
+                var cellWidth = data.cell.styles.cellWidth - (data.cell.styles.cellPadding * 2);
+                doc.setFontSize(fontSize);
+                var newFontSize = fontSize;
+                if(cellWidth) {
+                    while(doc.getTextWidth(data.cell.raw) > cellWidth) {
+                        --newFontSize;
+                        doc.setFontSize(newFontSize);
+                    }
+                }
+
                 if(data.cell.raw != undefined) {
                     if(e.data.highlight && e.data.highlight.has(data.cell.raw)) {
                         data.cell.styles.fillColor = hexToRgb(document.getElementById('highlightColorOption').value);
@@ -114,7 +126,7 @@ function genPDF() {
                 data.cell.styles.lineWidth = borderWidth;
                 data.cell.styles.lineColor = [0, 0, 0];
                 data.cell.styles.fontStyle = fontStyle;
-                data.cell.styles.fontSize = fontSize;
+                data.cell.styles.fontSize = newFontSize;
                 data.cell.styles.cellWidth = 181 / numColumns;
         }});
         var progBar = document.getElementById("pdfProgressBar");
