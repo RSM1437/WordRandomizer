@@ -28,7 +28,7 @@
                     var targetClass = $("." + inputValue);
                     $(".wordSource").not(targetClass).hide();
                     $(targetClass).show();
-                    document.getElementById('nextBtn').style.display = document.getElementById('wordSourceDictionary').checked ? "none" : "block";
+                    document.getElementById('nextBtn').style.display = document.getElementById('wordSourceDictionary').checked ? document.getElementById('dictionaryDownloadProgressBar').style.display : "block";
                 }
                 else if($(this).attr('id').startsWith('dictionaryOption')) {
                     document.getElementById('dictionaryLogin').style.display = document.getElementById('dictionaryOptionOxfordEnglish').checked ? "block" : "none";
