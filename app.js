@@ -21,7 +21,7 @@ AWS.config.credentials = new AWS.CognitoIdentityCredentials({
 var lambdaOptions = {
     maxRetries: 1,
     httpOptions: {
-        timeout: 600000
+        timeout: 900000
     }
 };
 var lambda = new AWS.Lambda(lambdaOptions);
