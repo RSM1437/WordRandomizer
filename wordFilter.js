@@ -7,6 +7,7 @@ class WordFilter {
         this.includePrefixes = false;
         this.includeSuffixes = false;
         this.includeAcronyms = false;
+        this.includeProfanity = false;
     }
 
     filter(words, progressCallback) {
@@ -48,6 +49,10 @@ class WordFilter {
         }
 
         if(!this.includeAcronyms && WordUtils.isAcronym(word)) {
+            return false;
+        }
+
+        if(!this.includeProfanity && WordUtils.isProfane(word)) {
             return false;
         }
 

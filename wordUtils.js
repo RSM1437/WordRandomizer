@@ -99,4 +99,8 @@ class WordUtils {
         }
         return true;
     }
+
+    static isProfane(word) {
+        return isBadWord(word);
+    }
 }

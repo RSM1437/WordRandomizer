@@ -353,6 +353,7 @@ function downloadWordsFromMerriamWebster() {
     updateProgress(1);
     if(merriamWebsterWords.length > 0) {
         downloadInProgress = true;
+        updateProgress(10);
         new Promise((resolve) => {
             filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress * 100)), (newWords) => {
                 resolve(newWords);
@@ -392,6 +393,7 @@ function filterDictionaryWords(words, progressCallback, completeCallback) {
         var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
         var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
         var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
+        var includeProfanity = document.getElementById('wordFilterOptionIncludeBadWords').checked;
         var wordFilter = new WordFilter();
         wordFilter.includeHyphenated = includeHyphenated;
         wordFilter.includeProper = includeProper;
@@ -399,6 +401,7 @@ function filterDictionaryWords(words, progressCallback, completeCallback) {
         wordFilter.includePrefixes = includePrefixes;
         wordFilter.includeSuffixes = includeSuffixes;
         wordFilter.includeAcronyms = includeAcronyms;
+        wordFilter.includeProfanity = includeProfanity;
         completeCallback(wordFilter.filter(words, progressCallback));
         worker.terminate();
     }, false);

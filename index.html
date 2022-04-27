@@ -92,6 +92,9 @@
                     <input type="checkbox" id="wordFilterOptionIncludeAcronyms" name="wordFilterOptionIncludeAcronyms" value="includeAcronyms">
                     <label for="wordFilterOptionIncludeAcronyms">Acronyms (like "G.O.A.T")</label>
                     <br>
+                    <input type="checkbox" id="wordFilterOptionIncludeBadWords" name="wordFilterOptionIncludeBadWords" value="includeBadWords">
+                    <label for="wordFilterOptionIncludeBadWords">Profanity</label>
+                    <br>
                     <br>
                 </div>
                 <button type="button" onClick="javascript:downloadWordsFromDictionary()" id="dictionaryImportButton">Import Words</button>
@@ -167,6 +170,7 @@
         </div>
         <script type="text/javascript" src="merriamWebsterBundle.js"></script>
         <script type="text/javascript" src="cryptoBundle.js"></script>
+        <script type="text/javascript" src="badWordFilterBundle.js"></script>
         <script type="text/javascript" src="wordFilter.js"></script>
         <script type="text/javascript" src="wordUtils.js"></script>
         <script src="https://sdk.amazonaws.com/js/aws-sdk-2.410.0.min.js"></script>

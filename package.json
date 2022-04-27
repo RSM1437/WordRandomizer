@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/fredespo/WordRandomizer#readme",
   "dependencies": {
+    "bad-words": "^3.0.4",
     "cheerio": "^1.0.0-rc.10",
     "crypto": "^1.0.1",
     "request": "^2.88.2",
