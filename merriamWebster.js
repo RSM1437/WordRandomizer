@@ -14,7 +14,7 @@ class WordScrape {
         var f = (error, response, html) => {
             if(!error && response.statusCode == 200) {
                 const $= cheerio.load(html);
-                $(".entries").each((i, data) => {
+                $(".d-block").each((i, data) => {
                     const item = $(data).text().replace(/^\s+|\s+$/gm,'');
                     var newWords = item.split('\n');
                     newWords.forEach(newWord => {
