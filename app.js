@@ -367,11 +367,20 @@ function downloadWordsFromMerriamWebster() {
         return;
     }
 
+    const onOverallError = function(errorMsg) {
+        progBar.style.display = "none";
+        document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
+        alert('ERROR: ' + errorMsg);
+        downloadInProgress = false;
+        document.getElementById('dictionaryImportButton').disabled = false;
+    };
     var onProgress = function(progressPct) {
         updateProgress(progressPct);
     }
     var onComplete = function(downloadedWords) {
-        merriamWebsterWords = downloadedWords;
+        downloadedWords.forEach(wordList => {
+            merriamWebsterWords = merriamWebsterWords.concat(wordList);
+        });
         filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
             filteredDictionaryWords = newWords;
             updateProgress(100);
@@ -379,7 +388,13 @@ function downloadWordsFromMerriamWebster() {
             downloadInProgress = false;
         });
     };
-    getWordsFromMerriamWebster(onProgress, onComplete);
+    var promises = [];
+    var letter = 'a';
+    while(letter <= 'z') {
+        promises.push(getWordsFromMerriamWebsterLambdaVersion(letter));
+        letter = String.fromCharCode(letter.charCodeAt(0) + 1)
+    }
+    Promise.all(promises).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
 function filterDictionaryWords(words, progressCallback, completeCallback) {
@@ -539,6 +554,7 @@ function getWordsFromOedStartingWith(letter, username, password, retries, onRequ
                     console.log(err, err.stack);
                 }
                 else {
+                    console.log(data);
                     let responsePayload = JSON.parse(data.Payload);
                     if(responsePayload.body != undefined) {
                         const {words, canRetry, errorMsg} = JSON.parse(responsePayload.body);
@@ -566,6 +582,32 @@ function getWordsFromOedStartingWith(letter, username, password, retries, onRequ
             });
         };
         request();
+    });
+}
+
+function getWordsFromMerriamWebsterLambdaVersion(letter) {
+    const params = {
+        FunctionName: 'mwScraper',
+        InvocationType: 'RequestResponse',
+        Payload: JSON.stringify({
+            letter: letter
+        }),
+    };
+    return new Promise((resolve, reject) => {
+        lambda.invoke(params, function(err, data) {
+            if(err) {
+                reject(err);
+            }
+            else {
+                let responsePayload = JSON.parse(data.Payload);
+                if(responsePayload.words != undefined) {
+                    resolve(responsePayload.words);
+                }
+                else {
+                    reject("Function Error.");
+                }
+            }
+        });
     });
 }
          
