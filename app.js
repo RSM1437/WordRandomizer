@@ -390,8 +390,13 @@ function downloadWordsFromMerriamWebster() {
     };
     var promises = [];
     var letter = 'a';
+    var progress = 0;
     while(letter <= 'z') {
-        promises.push(getWordsFromMerriamWebsterLambdaVersion(letter));
+        promises.push(getWordsFromMerriamWebsterLambdaVersion(letter).then((words) => {
+            progress += 3;
+            updateProgress(progress);
+            return words;
+        }));
         letter = String.fromCharCode(letter.charCodeAt(0) + 1)
     }
     Promise.all(promises).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
