@@ -29,6 +29,15 @@ var lambda = new AWS.Lambda(lambdaOptions);
 //As a worker normally take another JavaScript file to execute we convert the function in an URL: http://stackoverflow.com/a/16799132/2576706
 function getScriptPath(foo){ return window.URL.createObjectURL(new Blob([foo.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]],{type:'text/javascript'})); }
 
+function genFile() {
+    if(document.getElementById('outputTypePdf').checked) {
+        genPDF();
+    }
+    else {
+        genWebPage();
+    }
+}
+
 function genPDF() {
 
     pdfWorker = new Worker(getScriptPath(function(){
@@ -75,15 +84,7 @@ function genPDF() {
         }, false);
     }));
     var wordsProcessed = 0;
-    var words = [];
-    if(document.getElementById('keepWordsCheckbox').checked) {
-        words = prevWords;
-    } 
-    else {
-        words = getWords();
-        shuffle(words);
-        prevWords = words;
-    }
+    var words = getWords();
     var numWords = words.length;
     var numColumns = document.getElementById('numColumnsOption').value;
     var doc = new jsPDF();
@@ -129,26 +130,19 @@ function genPDF() {
                 data.cell.styles.fontSize = newFontSize;
                 data.cell.styles.cellWidth = 181 / numColumns;
         }});
-        var progBar = document.getElementById("pdfProgressBar");
         wordsProcessed += e.data.row.length;
         var progPct = numWords > 0 ? Math.round((wordsProcessed / numWords) * 100) : 100;
-        progBar.style.width = progPct + "%";
-        progBar.innerHTML = progPct + "%";
+        showProgress(progPct);
         if(wordsProcessed == numWords) {
             doc.save(outputFilename);
             generatingPdf = false;
-            document.getElementById("PdfSuccessMsg").style.display = "block";
             document.getElementById('pdfCancelBtn').style.display = "none";
             document.getElementById("keepWords").style.display = "block";
             pdfWorker.terminate();
         }
     }, false);
     generatingPdf = true;
-    document.getElementById("PdfSuccessMsg").style.display = "none";
-    var progBar = document.getElementById("pdfProgressBar");
-    progBar.style.display = "block";
-    progBar.style.width = 0 + "%";
-    progBar.innerHTML = 0 + "%";
+    showProgress(0);
     document.getElementById('pdfCancelBtn').style.display = "block";
     var highlightNewWords = document.getElementById('highlightNewWordsCheckbox').checked;
     if(highlightNewWords) {
@@ -167,8 +161,121 @@ function genPDF() {
             refWords: null
         });
     }
-    
 }
+
+function showProgress(progressPct) {
+    var progressBar = document.getElementById("pdfProgressBar");
+    progressBar.style.width = progressPct + "%";
+    progressBar.innerHTML = progressPct + "%";
+    progressBar.style.display = "block";
+}
+
+function genWebPage() {
+    showProgress(0);
+    const words = getWords();
+    var numColumns = document.getElementById('numColumnsOption').value;
+    var columnColor1 = document.getElementById('columnColor1').value;
+    var columnColor2 = document.getElementById('columnColor2').value;
+    const showCellBorders = document.getElementById('cellBordersOption').checked;
+    var textColor = document.getElementById('textColorOption').value;
+    var fontSize = 6 + parseInt(document.getElementById('fontSizeOption').value);
+    var bold = document.getElementById('fontStyleOptionBold').checked;
+    var italic = document.getElementById('fontStyleOptionItalic').checked;
+    const html = generateTableHTML(words, numColumns, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic);
+    saveHTML(html, getWebPageFilename());
+    showProgress(100);
+    document.getElementById("keepWords").style.display = "block";
+}
+  
+function generateTableHTML(words, numColumns, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic) {
+    let html = `<html><head><style>
+        table { border-collapse: collapse; width: 100%; } 
+        td { 
+            ` + (showCellBorders ? `border: 1px solid black; ` : ``) +
+            `padding: 10px; 
+            color: ${textColor};
+            font-size: ${fontSize}px;
+            font-weight: ` + (bold ? `bold` : `normal`) + `;
+            font-style: ` + (italic ? `italic` : `normal`) + `; 
+        }
+        .column1 { background-color: ${columnColor1}; }
+        .column2 { background-color: ${columnColor2}; }
+        table td:hover { cursor: pointer; }
+        #close-button:hover { cursor: pointer; }
+        #definition-modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+        }
+        #definition-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        }
+    </style></head><body><table>`;
+
+    for (let i = 0; i < words.length; i++) {
+        if (i % numColumns === 0) {
+        html += "<tr>";
+        }
+
+        html += `<td class="column${(i % 2) + 1}" id="word${i}">` + words[i] + "</td>";
+
+        if (i % numColumns === numColumns - 1 || i === words.length - 1) {
+        html += "</tr>";
+        }
+    }
+
+    html += `</table>` + generateDefinitionModalHTML() + `</body></html>`;
+
+    return html;
+}
+
+
+function generateDefinitionModalHTML() {
+    let html = `<div id="definition-modal">
+      <div id="definition-content">
+        <p id="definition-text"></p>
+      </div>
+    </div>
+    <script>
+      let cells = document.getElementsByTagName("td");
+      for (let i = 0; i < cells.length; i++) {
+        cells[i].addEventListener("click", function() {
+          let modal = document.getElementById("definition-modal");
+          let definitionText = document.getElementById("definition-text");
+          definitionText.innerHTML = "Definition of '" + this.innerHTML + "' would go here";
+          modal.style.display = "block";
+        });
+      }
+      let modal = document.getElementById("definition-modal");
+      modal.addEventListener("click", function(event) {
+        if (event.target === modal) {
+          modal.style.display = "none";
+        }
+      });
+    </script>`;
+  
+    return html;
+}
+
+function saveHTML(html, filename) {
+    const blob = new Blob([html], { type: "text/html" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  }
+  
 
 function cancelPDF() {
     document.getElementById('pdfCancelBtn').style.display = "none";
@@ -183,13 +290,21 @@ function getCellColor(colIndex) {
 }
 
 function getPdfFilename() {
+    return getOutputFilenameWithExtension(".pdf");
+}
+
+function getWebPageFilename() {
+    return getOutputFilenameWithExtension(".html");
+}
+
+function getOutputFilenameWithExtension(extension) {
     var outputFilenameBox = document.getElementById("outputFilename");
     var outputFilename = outputFilenameBox.value;
     if(outputFilename.length === 0) {
         outputFilename = outputFilenameBox.placeholder;
     }
-    if(!outputFilename.endsWith(".pdf")) {
-        outputFilename += ".pdf";
+    if(!outputFilename.endsWith(extension)) {
+        outputFilename += extension;
     }
     return outputFilename;
 }
@@ -205,14 +320,21 @@ function hexToRgb(hex) {
 
 function getWords() {
     var words = [];
-    if(document.getElementById("wordSourceText").checked) {
-        words = getWordsFromText(document.getElementById('wordSourceTextarea').value);
-    }
-    else if (document.getElementById("wordSourceFile").checked) {
-        words = getWordsFromText(fileText);
-    }
-    else if(document.getElementById("wordSourceDictionary").checked) {
-        words = filteredDictionaryWords;
+    if(document.getElementById('keepWordsCheckbox').checked) {
+        words = prevWords;
+    } 
+    else {
+        if(document.getElementById("wordSourceText").checked) {
+            words = getWordsFromText(document.getElementById('wordSourceTextarea').value);
+        }
+        else if (document.getElementById("wordSourceFile").checked) {
+            words = getWordsFromText(fileText);
+        }
+        else if(document.getElementById("wordSourceDictionary").checked) {
+            words = filteredDictionaryWords;
+        }
+        shuffle(words);
+        prevWords = words;
     }
     return words;
 }

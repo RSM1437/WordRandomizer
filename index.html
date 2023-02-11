@@ -125,7 +125,7 @@
             Column colors: <input type="color" id="columnColor1" value="#f8f8f8"> <input type="color" id="columnColor2" value="#e8e8e8">
             <br>
             <br>
-            Cell borders: <input type="checkbox" id="cellBordersOption">
+            Cell borders: <input type="checkbox" id="cellBordersOption" checked="checked">
             <br>
             <br>
             Text color: <input type="color" id="textColorOption" value="#000000">
@@ -143,7 +143,7 @@
             <br>
             <div id="keepWords" hidden>
                 <input type="checkbox" id="keepWordsCheckbox" name="keepWordsCheckbox">
-                <label for="keepWordsCheckbox">Keep same words in same order as last pdf</label>
+                <label for="keepWordsCheckbox">Keep same words in same order as last download</label>
             </div>
             <input type="checkbox" id="highlightNewWordsCheckbox" name="highlightNewWordsCheckbox" onClick="onClickHighlightNewWords()">
             <label for="highlightNewWordsCheckbox">Highlight new words</label>
@@ -157,16 +157,25 @@
             <br>
             <br>
             <br>
-            <div class="center"><button type="button" onClick="javascript:genPDF()" id="genPdfBtn">Download PDF</button></div>
+            Download as:
+            <br>
+            <div>
+                <input type="radio" id="outputTypeWebpage" name="outputOption" value="outputTypeWebpage" checked="checked">
+                <label for="outputTypeWebpage">Interactible Web Page</label>
+                <br>
+                <input type="radio" id="outputTypePdf" name="outputOption" value="outputTypePdf">
+                <label for="outputTypePdf">PDF</label>
+            </div>
+            <br>
+            <br>
+            <br>
+            <div class="center"><button type="button" onClick="javascript:genFile()" id="genPdfBtn">Download</button></div>
             <br>
             <div id="pdfProgress" class="progressBar center">
                 <div id="pdfProgressBar" class="progressBarFilled" hidden></div>
             </div>
             <br>
             <div class="center" id="pdfCancelBtn" hidden><button type="button" onClick="javascript:cancelPDF()">Cancel</button></div>
-            <div id="PdfSuccessMsg" class="center" hidden>
-                <p>PDF Saved succesfully!</p>
-            </div>
         </div>
         <script type="text/javascript" src="merriamWebsterBundle.js"></script>
         <script type="text/javascript" src="cryptoBundle.js"></script>
