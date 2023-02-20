@@ -306,16 +306,18 @@ function generateDefinitionModalHTML() {
     </div>
     <script>
       let cells = document.getElementsByTagName("td");
+      const isIos = /iPhone/.test(navigator.userAgent) && !window.MSStream;
+      const eventType = isIos ? 'touchend' : 'click';
       for (let i = 0; i < cells.length; i++) {
-        cells[i].addEventListener("click", function() {
-          let modal = document.getElementById("definition-modal");
-          let definitionText = document.getElementById("definition-text");
-          definitionText.innerHTML = "Definition of '" + this.innerHTML + "' would go here";
-          modal.style.display = "block";
+        cells[i].addEventListener(eventType, function() {
+            let modal = document.getElementById("definition-modal");
+            let definitionText = document.getElementById("definition-text");
+            definitionText.innerHTML = "Definition of '" + this.innerHTML + "' would go here";
+            modal.style.display = "block";
         });
       }
       let modal = document.getElementById("definition-modal");
-      modal.addEventListener("click", function(event) {
+      modal.addEventListener(eventType, function(event) {
         if (event.target === modal) {
           modal.style.display = "none";
         }
