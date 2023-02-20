@@ -270,7 +270,7 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
         html += generateTablePageHTML(words.splice(0, numRowsPerPage * numColumns), numColumns);
         numPages++;
     }
-    html += `<div class="page-number">Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right; type="number" min=\"1\" max="${numPages}" value=1 oninput="updatePageNumber(this.value)"> of ${numPages}</div>`;
+    html += `<div class="page-number">Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right;" min="1" max="${numPages}" value="1" onblur="updatePageNumber(this.value)" onkeydown="if (event.keyCode === 13) updatePageNumber(this.value);"> of ${numPages}</div>`;
     html += generateDefinitionModalHTML() + `</body></html>`;
     html += `<script>`;
     html += generateScrollListenerScript(numPages);
@@ -334,7 +334,7 @@ function generateScrollListenerScript(numPages) {
     js += "const pageHeight = page.offsetHeight;";
     js += `let pageNum = Math.min(${numPages} - 1, Math.floor(scrollTop / pageHeight));`;
     js += "const pageNumberElement = document.querySelector('.page-number');";
-    js += `pageNumberElement.innerHTML = 'Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right; type=\"number\" min=\"1\" max=\"${numPages}\" value=\"' + (pageNum + 1) + '\" oninput=\"updatePageNumber(this.value)\"> of ${numPages}';`;
+    js += `pageNumberElement.innerHTML = 'Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right;\" min=\"1\" max=\"${numPages}\" value=\"' + (pageNum + 1) + '\" onblur=\"updatePageNumber(this.value)\" onkeydown=\"if (event.keyCode === 13) updatePageNumber(this.value);\"> of ${numPages}';`;
     js += "});";
 
     js += "function updatePageNumber(pageNum) {";
