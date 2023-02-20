@@ -181,15 +181,58 @@ function genWebPage() {
     var fontSize = 6 + parseInt(document.getElementById('fontSizeOption').value);
     var bold = document.getElementById('fontStyleOptionBold').checked;
     var italic = document.getElementById('fontStyleOptionItalic').checked;
-    const html = generateTableHTML(words, numColumns, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic);
+    const html = generateTableHTML(words, numColumns, 50, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic);
     saveHTML(html, getWebPageFilename());
     showProgress(100);
     document.getElementById("keepWords").style.display = "block";
 }
   
-function generateTableHTML(words, numColumns, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic) {
+function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic) {
     let html = `<html><head><style>
-        table { border-collapse: collapse; width: 100%; } 
+        body {
+            padding-top: 100px;
+            padding-bottom: 100px;
+            background-color: #373737;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 90%; 
+            height: 90%;
+            margin: auto; 
+            font-family: sans-serif; 
+        }
+        .page-break {
+            margin-top: 5%;
+        }
+        .page {
+            border: 1px solid;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            width: 80%;
+            margin: auto;
+            padding-top: 3.5%;
+            padding-bottom: 3.5%;
+        }
+        .page-number {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            color: white;
+            z-index: 3;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #373737;
+            z-index: 2;
+        }    
         td { 
             ` + (showCellBorders ? `border: 1px solid black; ` : ``) +
             `padding: 10px; 
@@ -221,25 +264,39 @@ function generateTableHTML(words, numColumns, columnColor1, columnColor2, showCe
         border: 1px solid #888;
         width: 50%;
         }
-    </style></head><body><table>`;
+    </style></head><body>`;
+    let numPages = 0;
+    while (words.length > 0) {
+        html += generateTablePageHTML(words.splice(0, numRowsPerPage * numColumns), numColumns);
+        numPages++;
+    }
+    html += `<div class="page-number">Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right; type="number" min=\"1\" max="${numPages}" value=1 oninput="updatePageNumber(this.value)"> of ${numPages}</div>`;
+    html += generateDefinitionModalHTML() + `</body></html>`;
+    html += `<script>`;
+    html += generateScrollListenerScript(numPages);
+    html += `</script>`;
+    return html;
+}
 
+function generateTablePageHTML(words, numColumns) {
+    let html = `<div class="page">`;
+    html += `<table>`;
     for (let i = 0; i < words.length; i++) {
         if (i % numColumns === 0) {
-        html += "<tr>";
+            html += "<tr>";
         }
 
         html += `<td class="column${(i % 2) + 1}" id="word${i}">` + words[i] + "</td>";
 
         if (i % numColumns === numColumns - 1 || i === words.length - 1) {
-        html += "</tr>";
+            html += "</tr>";
         }
     }
-
-    html += `</table>` + generateDefinitionModalHTML() + `</body></html>`;
-
+    html += `</table>`
+    html += `</div>`;
+    html += `<div class="page-break"></div>`
     return html;
 }
-
 
 function generateDefinitionModalHTML() {
     let html = `<div id="definition-modal">
@@ -268,14 +325,31 @@ function generateDefinitionModalHTML() {
     return html;
 }
 
+function generateScrollListenerScript(numPages) {
+    let js = "window.addEventListener('scroll', function() {";
+    js += "const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;";
+    js += "const page = document.getElementsByClassName(\"page\")[0];";
+    js += "const pageHeight = page.offsetHeight;";
+    js += `let pageNum = Math.min(${numPages} - 1, Math.floor(scrollTop / pageHeight));`;
+    js += "const pageNumberElement = document.querySelector('.page-number');";
+    js += `pageNumberElement.innerHTML = 'Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right; type=\"number\" min=\"1\" max=\"${numPages}\" value=\"' + (pageNum + 1) + '\" oninput=\"updatePageNumber(this.value)\"> of ${numPages}';`;
+    js += "});";
+
+    js += "function updatePageNumber(pageNum) {";
+    js += "const page = document.getElementsByClassName(\"page\")[0];";
+    js += "const pageHeight = page.offsetHeight;";
+    js += "window.scrollTo(0, (pageNum - 1) * (pageHeight + 95.5));";
+    js += "}";
+    return js;
+}
+
 function saveHTML(html, filename) {
     const blob = new Blob([html], { type: "text/html" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     link.click();
-  }
-  
+}
 
 function cancelPDF() {
     document.getElementById('pdfCancelBtn').style.display = "none";
