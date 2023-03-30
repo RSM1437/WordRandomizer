@@ -181,7 +181,7 @@ function genWebPage() {
     var fontSize = 6 + parseInt(document.getElementById('fontSizeOption').value);
     var bold = document.getElementById('fontStyleOptionBold').checked;
     var italic = document.getElementById('fontStyleOptionItalic').checked;
-    const html = generateTableHTML(words, numColumns, 50, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic);
+    const html = generateTableHTML(words, numColumns, 32, columnColor1, columnColor2, showCellBorders, textColor, fontSize, bold, italic);
     saveHTML(html, getWebPageFilename());
     showProgress(100);
     document.getElementById("keepWords").style.display = "block";
@@ -200,6 +200,7 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             height: 90%;
             margin: auto; 
             font-family: sans-serif; 
+            table-layout: fixed;
         }
         .page-break {
             margin-top: 5%;
@@ -209,10 +210,10 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             padding: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             background-color: white;
-            width: 80%;
+            width: 85%;
             margin: auto;
-            padding-top: 3.5%;
-            padding-bottom: 3.5%;
+            padding-top: 5%;
+            padding-bottom: 5%;
         }
         .page-number {
             position: fixed;
@@ -239,7 +240,11 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             color: ${textColor};
             font-size: ${fontSize}px;
             font-weight: ` + (bold ? `bold` : `normal`) + `;
-            font-style: ` + (italic ? `italic` : `normal`) + `; 
+            font-style: ` + (italic ? `italic` : `normal`) + `;
+            width: ` + (100 / numColumns) + `%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .column1 { background-color: ${columnColor1}; }
         .column2 { background-color: ${columnColor2}; }
@@ -299,31 +304,29 @@ function generateTablePageHTML(words, numColumns) {
 }
 
 function generateDefinitionModalHTML() {
-    let html = `<div id="definition-modal">
-      <div id="definition-content">
-        <p id="definition-text"></p>
-      </div>
-    </div>
-    <script>
-      let cells = document.getElementsByTagName("td");
-      const isIos = /iPhone/.test(navigator.userAgent) && !window.MSStream;
-      const eventType = isIos ? 'touchend' : 'click';
-      for (let i = 0; i < cells.length; i++) {
-        cells[i].addEventListener(eventType, function() {
-            let modal = document.getElementById("definition-modal");
-            let definitionText = document.getElementById("definition-text");
-            definitionText.innerHTML = "Definition of '" + this.innerHTML + "' would go here";
-            modal.style.display = "block";
-        });
-      }
-      let modal = document.getElementById("definition-modal");
-      modal.addEventListener(eventType, function(event) {
-        if (event.target === modal) {
-          modal.style.display = "none";
+    let html = `<div id="definition-modal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+        <div id="definition-content" style="background-color: white; padding: 20px; border-radius: 5px;">
+            <p id="definition-text"></p>
+        </div>
+        </div>
+        <script>
+        let cells = document.getElementsByTagName("td");
+        const eventType = 'click';
+        for (let i = 0; i < cells.length; i++) {
+            cells[i].addEventListener(eventType, function() {
+                let modal = document.getElementById("definition-modal");
+                let definitionText = document.getElementById("definition-text");
+                definitionText.innerHTML = "Definition of '" + this.innerHTML + "' would go here";
+                modal.style.display = "flex";
+            });
         }
-      });
+        let modal = document.getElementById("definition-modal");
+        modal.addEventListener(eventType, function(event) {
+            if (event.target === modal) {
+            modal.style.display = "none";
+            }
+        });
     </script>`;
-  
     return html;
 }
 
