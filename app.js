@@ -300,7 +300,6 @@ function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
             html += `<script>
                 document.getElementById("word${i}").addEventListener("click", function() {
                     document.body.style.overflow = "hidden";
-                    document.body.style.height = "100%";
                     document.getElementById("definition-content").innerHTML = \`` +  generateDefinitionHtmlForMw(words[i]) + `\`;
                     document.getElementById("definition-modal").style.display = "flex";
                 });
@@ -347,7 +346,6 @@ function generateDefinitionModalHTML() {
                 if (event.target === modal) {
                     modal.style.display = "none";
                     document.body.style.overflow = "";
-                    document.body.style.height = "";
                 }
             });
         </script>`;
