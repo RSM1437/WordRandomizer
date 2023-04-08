@@ -243,9 +243,7 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             font-weight: ` + (bold ? `bold` : `normal`) + `;
             font-style: ` + (italic ? `italic` : `normal`) + `;
             width: ` + (100 / numColumns) + `%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            overflow-wrap: break-word;
         }
         .column1 { background-color: ${columnColor1}; }
         .column2 { background-color: ${columnColor2}; }
@@ -448,12 +446,9 @@ function getWordsFromText(text) {
     var words = [];
     var lines = text.split("\n");
     for(var i = 0; i < lines.length; ++i) {
-        var wordsOnLine = lines[i].split(" ");
-        for(var j = 0; j < wordsOnLine.length; ++j) {
-            var word = wordsOnLine[j].trim().replace('\r', '');
-            if(word.length > 0) {
-                words.push(word);
-            }
+        var word = lines[i].trim().replace('\r', '');
+        if(word.length > 0) {
+            words.push(word);
         }
     }
     return words;
