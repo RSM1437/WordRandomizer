@@ -5,6 +5,7 @@ var readingFile = false;
 var generatingPdf = false;
 var pdfWorker;
 var merriamWebsterWords = [];
+var merriamWebsterDefinitions = {};
 var filteredDictionaryWords = [];
 var oedWords = [];
 var downloadInProgress = false;
@@ -248,7 +249,6 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
         }
         .column1 { background-color: ${columnColor1}; }
         .column2 { background-color: ${columnColor2}; }
-        table td:hover { cursor: pointer; }
         #close-button:hover { cursor: pointer; }
         #definition-modal {
         display: none;
@@ -268,12 +268,17 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
         padding: 20px;
         border: 1px solid #888;
         width: 50%;
-        }
-    </style></head><body>`;
+        }`;
+    if (shouldShowDefinitionsOnHtmlOutput()) {
+        html += `table td:hover { cursor: pointer; }`;
+    }
+    html += `</style></head><body>`;
     let numPages = 0;
-    while (words.length > 0) {
-        html += generateTablePageHTML(words.splice(0, numRowsPerPage * numColumns), numColumns);
+    let wordIndex = 0;
+    while (numPages * numRowsPerPage * numColumns < words.length) {
+        html += generateTablePageHTML(words, wordIndex, numRowsPerPage, numColumns);
         numPages++;
+        wordIndex += numRowsPerPage * numColumns;
     }
     html += `<div class="page-number">Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right;" min="1" max="${numPages}" value="1" onblur="updatePageNumber(this.value)" onkeydown="if (event.keyCode === 13) updatePageNumber(this.value);"> of ${numPages}</div>`;
     html += generateDefinitionModalHTML() + `</body></html>`;
@@ -283,15 +288,26 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
     return html;
 }
 
-function generateTablePageHTML(words, numColumns) {
+function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
     let html = `<div class="page">`;
     html += `<table>`;
-    for (let i = 0; i < words.length; i++) {
+    let endIndex = startIndex + numRowsPerPage * numColumns;
+    for (let i = startIndex; i < endIndex && i < words.length; i++) {
         if (i % numColumns === 0) {
             html += "<tr>";
         }
 
         html += `<td class="column${(i % 2) + 1}" id="word${i}">` + words[i] + "</td>";
+        if(shouldShowDefinitionsOnHtmlOutput()) {
+            html += `<script>
+                document.getElementById("word${i}").addEventListener("click", function() {
+                    document.body.style.overflow = "hidden";
+                    document.body.style.height = "100%";
+                    document.getElementById("definition-content").innerHTML = \`` +  generateDefinitionHtmlForMw(words[i]) + `\`;
+                    document.getElementById("definition-modal").style.display = "flex";
+                });
+            </script>`;
+        }
 
         if (i % numColumns === numColumns - 1 || i === words.length - 1) {
             html += "</tr>";
@@ -303,30 +319,40 @@ function generateTablePageHTML(words, numColumns) {
     return html;
 }
 
+function shouldShowDefinitionsOnHtmlOutput() {
+    return document.getElementById("wordSourceDictionary").checked && document.getElementById('dictionaryOptionMerriamWebster').checked;
+}
+
+function generateDefinitionHtmlForMw(word) {
+    let html = `<div style="text-align: center;"><h2 style="font-size: 27px; margin: 5px 0 10px;">` + word + `</h2></div>`;
+    for (const [partOfSpeech, definitions] of Object.entries(merriamWebsterDefinitions[word])) {
+        html += `<div style="border: 1px solid #ccc; border-radius: 5px; margin: 10px 0; padding: 10px; box-shadow: 0 2px 2px rgba(0,0,0,0.1);">`;
+        html += `<h2 style="font-size: 23px; margin: 5px 0 10px;">` + partOfSpeech + `</h2>`
+        html += `<ol style="margin: 0; padding: 0 0 0 40px;">`;
+        definitions.forEach(d => {
+            html += `<li style="margin-bottom: 5px; font-size: 17px; line-height: 1.5; font-weight: bold"><span style="font-weight: normal; font-size: 17px">` + d + `</span></li>`;
+        });
+        html += `</ol>`;
+        html += `</div>`;
+    }
+    return html;
+}
+
 function generateDefinitionModalHTML() {
-    let html = `<div id="definition-modal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
-        <div id="definition-content" style="background-color: white; padding: 20px; border-radius: 5px;">
-            <p id="definition-text"></p>
+    let html = `<div id="definition-modal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); overflow-y: hidden">
+        <div id="definition-content" style="background-color: white; padding: 20px; border-radius: 5px; height: 50%; overflow-y: auto">
         </div>
         </div>
         <script>
-        let cells = document.getElementsByTagName("td");
-        const eventType = 'click';
-        for (let i = 0; i < cells.length; i++) {
-            cells[i].addEventListener(eventType, function() {
-                let modal = document.getElementById("definition-modal");
-                let definitionText = document.getElementById("definition-text");
-                definitionText.innerHTML = "Definition of '" + this.innerHTML + "' would go here";
-                modal.style.display = "flex";
+            let modal = document.getElementById("definition-modal");
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                    document.body.style.overflow = "";
+                    document.body.style.height = "";
+                }
             });
-        }
-        let modal = document.getElementById("definition-modal");
-        modal.addEventListener(eventType, function(event) {
-            if (event.target === modal) {
-            modal.style.display = "none";
-            }
-        });
-    </script>`;
+        </script>`;
     return html;
 }
 
@@ -579,8 +605,17 @@ function downloadWordsFromMerriamWebster() {
         updateProgress(progressPct);
     }
     var onComplete = function(downloadedWords) {
-        downloadedWords.forEach(wordList => {
-            merriamWebsterWords = merriamWebsterWords.concat(wordList);
+        downloadedWords.forEach(wordsWithDefs => {
+            for (const [word, defsPerPartOfSpeech] of Object.entries(JSON.parse(wordsWithDefs))) {
+                merriamWebsterWords.push(word);
+                merriamWebsterDefinitions[word] = {};
+                for (const [partOfSpeech, defs] of Object.entries(defsPerPartOfSpeech)) {
+                    merriamWebsterDefinitions[word][partOfSpeech] = [];
+                    defs.forEach(definition => {
+                        merriamWebsterDefinitions[word][partOfSpeech].push(definition);
+                    });
+                }
+            }
         });
         filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
             filteredDictionaryWords = newWords;
@@ -592,11 +627,11 @@ function downloadWordsFromMerriamWebster() {
     var promises = [];
     var letter = 'a';
     var progress = 0;
-    while(letter <= 'z') {
-        promises.push(getWordsFromMerriamWebsterLambdaVersion(letter).then((words) => {
+    while(letter <= 'a') {
+        promises.push(getWordsFromMerriamWebsterLambdaVersion(letter).then((response) => {
             progress += 3;
             updateProgress(progress);
-            return words;
+            return response;
         }));
         letter = String.fromCharCode(letter.charCodeAt(0) + 1)
     }
@@ -760,7 +795,6 @@ function getWordsFromOedStartingWith(letter, username, password, retries, onRequ
                     console.log(err, err.stack);
                 }
                 else {
-                    console.log(data);
                     let responsePayload = JSON.parse(data.Payload);
                     if(responsePayload.body != undefined) {
                         const {words, canRetry, errorMsg} = JSON.parse(responsePayload.body);
@@ -806,8 +840,8 @@ function getWordsFromMerriamWebsterLambdaVersion(letter) {
             }
             else {
                 let responsePayload = JSON.parse(data.Payload);
-                if(responsePayload.words != undefined) {
-                    resolve(responsePayload.words);
+                if(responsePayload.body != undefined) {
+                    resolve(responsePayload.body);
                 }
                 else {
                     reject("Function Error.");
