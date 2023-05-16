@@ -560,29 +560,23 @@ function downloadWordsFromMerriamWebster() {
         document.getElementById('nextBtn').style.display = "block";
         document.getElementById("dictionaryImportButton").disabled = false;
     }
-    var progBar = document.getElementById("dictionaryDownloadProgressBar");
-    var updateProgress = function(progressPct) {
-        progBar.style.width = progressPct + "%";
-        progBar.innerHTML = progressPct + "%";
-    };
+    var progBar = document.getElementById("dictionaryDownloadProgress");
     document.getElementById("dictionaryImportButton").disabled = true;
     document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
     document.getElementById('nextBtn').style.display = "none";
     downloadInProgress = true;
     progBar.style.display = "block";
-    updateProgress(1);
     if(merriamWebsterWords.length > 0) {
         downloadInProgress = true;
-        updateProgress(10);
         new Promise((resolve) => {
-            filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress * 100)), (newWords) => {
+            filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
                 resolve(newWords);
             });
         }).then((newWords) => {
             filteredDictionaryWords = newWords;
-            updateProgress(100);
             dispRes();
             downloadInProgress = false;
+            progBar.style.display = "none";
         });
         return;
     }
@@ -594,41 +588,26 @@ function downloadWordsFromMerriamWebster() {
         downloadInProgress = false;
         document.getElementById('dictionaryImportButton').disabled = false;
     };
-    var onProgress = function(progressPct) {
-        updateProgress(progressPct);
-    }
-    var onComplete = function(downloadedWords) {
-        downloadedWords.forEach(wordsWithDefs => {
-            for (const [word, defsPerPartOfSpeech] of Object.entries(JSON.parse(wordsWithDefs))) {
-                merriamWebsterWords.push(word);
-                merriamWebsterDefinitions[word] = {};
-                for (const [partOfSpeech, defs] of Object.entries(defsPerPartOfSpeech)) {
-                    merriamWebsterDefinitions[word][partOfSpeech] = [];
-                    defs.forEach(definition => {
-                        merriamWebsterDefinitions[word][partOfSpeech].push(definition);
-                    });
-                }
+    var onComplete = function(definitionsPerWord) {
+        for (const [word, defsPerPartOfSpeech] of Object.entries(definitionsPerWord)) {
+            merriamWebsterWords.push(word);
+            merriamWebsterDefinitions[word] = {};
+            for (const [partOfSpeech, defs] of Object.entries(defsPerPartOfSpeech)) {
+                merriamWebsterDefinitions[word][partOfSpeech] = [];
+                defs.forEach(definition => {
+                    merriamWebsterDefinitions[word][partOfSpeech].push(definition);
+                });
             }
-        });
+        }
+
         filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
             filteredDictionaryWords = newWords;
-            updateProgress(100);
             dispRes();
             downloadInProgress = false;
+            progBar.style.display = "none";
         });
     };
-    var promises = [];
-    var letter = 'a';
-    var progress = 0;
-    while(letter <= 'a') {
-        promises.push(getWordsFromMerriamWebsterLambdaVersion(letter).then((response) => {
-            progress += 3;
-            updateProgress(progress);
-            return response;
-        }));
-        letter = String.fromCharCode(letter.charCodeAt(0) + 1)
-    }
-    Promise.all(promises).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
+    getWordsFromMerriamWebsterLambdaVersion(1000).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
 function filterDictionaryWords(words, progressCallback, completeCallback) {
@@ -818,12 +797,13 @@ function getWordsFromOedStartingWith(letter, username, password, retries, onRequ
     });
 }
 
-function getWordsFromMerriamWebsterLambdaVersion(letter) {
+function getWordsFromMerriamWebsterLambdaVersion(limit = 10_000, startKey = null) {
     const params = {
-        FunctionName: 'mwScraper',
+        FunctionName: 'getMerriamWebsterWordsAndDefintitions',
         InvocationType: 'RequestResponse',
-        Payload: JSON.stringify({
-            letter: letter
+        Payload:JSON.stringify({
+            limit: limit,
+            start_key: startKey
         }),
     };
     return new Promise((resolve, reject) => {
@@ -834,10 +814,22 @@ function getWordsFromMerriamWebsterLambdaVersion(letter) {
             else {
                 let responsePayload = JSON.parse(data.Payload);
                 if(responsePayload.body != undefined) {
-                    resolve(responsePayload.body);
+                    let words = JSON.parse(responsePayload.body);
+                    let nextStartKey = responsePayload.start_key;
+                    if (nextStartKey) {
+                        getWordsFromMerriamWebsterLambdaVersion(limit, nextStartKey).then((nextWords) => {
+                            Object.assign(words, nextWords);
+                            resolve(words);
+                        }).catch((error) => {
+                            reject(error);
+                        });
+                    } else {
+                        // If there are no more results, return the final list of words
+                        resolve(words);
+                    }
                 }
                 else {
-                    reject("Function Error.");
+                    reject("Function Error: " + JSON.stringify(responsePayload));
                 }
             }
         });
