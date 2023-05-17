@@ -271,6 +271,7 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
         html += `table td:hover { cursor: pointer; }`;
     }
     html += `</style></head><body>`;
+    html = minifyHTML(html);
     let numPages = 0;
     let wordIndex = 0;
     while (numPages * numRowsPerPage * numColumns < words.length) {
@@ -310,9 +311,10 @@ function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
             html += "</tr>";
         }
     }
-    html += `</table>`
+    html += `</table>`;
     html += `</div>`;
-    html += `<div class="page-break"></div>`
+    html += `<div class="page-break"></div>`;
+    html = minifyHTML(html);
     return html;
 }
 
@@ -349,6 +351,7 @@ function generateDefinitionModalHTML() {
                 }
             });
         </script>`;
+    html = minifyHTML(html);
     return html;
 }
 
@@ -367,6 +370,7 @@ function generateScrollListenerScript(numPages) {
     js += "const pageHeight = page.offsetHeight;";
     js += "window.scrollTo(0, (pageNum - 1) * (pageHeight + 95.5));";
     js += "}";
+    js = minifyHTML(js);
     return js;
 }
 
@@ -797,7 +801,7 @@ function getWordsFromOedStartingWith(letter, username, password, retries, onRequ
     });
 }
 
-function getWordsFromMerriamWebsterLambdaVersion(limit = 10_000, startKey = null) {
+function getWordsFromMerriamWebsterLambdaVersion(limit = 10_000, startKey = null, total_limit = null, current_total = 0) {
     const params = {
         FunctionName: 'getMerriamWebsterWordsAndDefintitions',
         InvocationType: 'RequestResponse',
@@ -815,9 +819,14 @@ function getWordsFromMerriamWebsterLambdaVersion(limit = 10_000, startKey = null
                 let responsePayload = JSON.parse(data.Payload);
                 if(responsePayload.body != undefined) {
                     let words = JSON.parse(responsePayload.body);
+                    current_total += Object.keys(words).length;
+                    if (total_limit && current_total > total_limit) {
+                        resolve(words);
+                    }
+
                     let nextStartKey = responsePayload.start_key;
                     if (nextStartKey) {
-                        getWordsFromMerriamWebsterLambdaVersion(limit, nextStartKey).then((nextWords) => {
+                        getWordsFromMerriamWebsterLambdaVersion(limit, nextStartKey, total_limit, current_total).then((nextWords) => {
                             Object.assign(words, nextWords);
                             resolve(words);
                         }).catch((error) => {
@@ -934,3 +943,25 @@ function formatMsTime(ms) {
     str += Math.round(ms) + " ms";
     return str;
 }
+
+function minifyHTML(html) {
+    // Remove leading and trailing white spaces
+    html = html.trim();
+    
+    // Replace multiple spaces with a single space
+    html = html.replace(/\s+/g, ' ');
+  
+    // Remove comments
+    html = html.replace(/<!--[\s\S]*?-->/g, '');
+  
+    // Remove whitespace between HTML tags
+    html = html.replace(/>[\s]+</g, '><');
+  
+    // Remove whitespace inside tags
+    html = html.replace(/(<[^\/]+?>)\s+(<\/[^>]+?>)/g, '$1$2');
+  
+    // Remove line breaks
+    html = html.replace(/[\r\n]+/g, '');
+  
+    return html;
+  }
