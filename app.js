@@ -245,8 +245,8 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             width: ` + (100 / numColumns) + `%;
             overflow-wrap: break-word;
         }
-        .c1 { background-color: ${columnColor1}; }
-        .c2 { background-color: ${columnColor2}; }
+        .q { background-color: ${columnColor1}; }
+        .w { background-color: ${columnColor2}; }
         .d1 {
             text-align: center;
         }
@@ -331,7 +331,7 @@ function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
             html += "<tr>";
         }
 
-        html += `<td class="c${(i % 2) + 1}"`;
+        html += `<td class="` + (i % 2 === 0 ? `q` : `w`) + `"`;
         if(shouldShowDefinitionsOnHtmlOutput()) {
             html += ` d="${generateDefinitionStringForMw(words[i])}"`;
         }
