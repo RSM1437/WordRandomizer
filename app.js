@@ -203,10 +203,10 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             font-family: sans-serif; 
             table-layout: fixed;
         }
-        .page-break {
+        .b {
             margin-top: 5%;
         }
-        .page {
+        .g {
             border: 1px solid;
             padding: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -245,8 +245,40 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
             width: ` + (100 / numColumns) + `%;
             overflow-wrap: break-word;
         }
-        .column1 { background-color: ${columnColor1}; }
-        .column2 { background-color: ${columnColor2}; }
+        .c1 { background-color: ${columnColor1}; }
+        .c2 { background-color: ${columnColor2}; }
+        .d1 {
+            text-align: center;
+        }
+        .d2 {
+            font-size: 27px;
+            margin: 5px 0 10px;
+        }
+        .d3 {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+        }
+        .d4 {
+            font-size: 23px;
+            margin: 5px 0 10px;
+        }
+        .d5 {
+            margin: 0;
+            padding: 0 0 0 40px;
+        }
+        .d6 {
+            margin-bottom: 5px;
+            font-size: 17px;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+        .d7 {
+            font-weight: normal;
+            font-size: 17px
+        }
         #close-button:hover { cursor: pointer; }
         #definition-modal {
         display: none;
@@ -274,11 +306,14 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
     html = minifyHTML(html);
     let numPages = 0;
     let wordIndex = 0;
+    html += `<div id=tablePages>`;
     while (numPages * numRowsPerPage * numColumns < words.length) {
         html += generateTablePageHTML(words, wordIndex, numRowsPerPage, numColumns);
         numPages++;
         wordIndex += numRowsPerPage * numColumns;
     }
+    html += `</div>`;
+    html += generateClickListenerScript();
     html += `<div class="page-number">Page <input style="background-color: #373737; color: white; font-size: 16px; width: 50px; text-align: right;" min="1" max="${numPages}" value="1" onblur="updatePageNumber(this.value)" onkeydown="if (event.keyCode === 13) updatePageNumber(this.value);"> of ${numPages}</div>`;
     html += generateDefinitionModalHTML() + `</body></html>`;
     html += `<script>`;
@@ -288,7 +323,7 @@ function generateTableHTML(words, numColumns, numRowsPerPage, columnColor1, colu
 }
 
 function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
-    let html = `<div class="page">`;
+    let html = `<div class="g">`;
     html += `<table>`;
     let endIndex = startIndex + numRowsPerPage * numColumns;
     for (let i = startIndex; i < endIndex && i < words.length; i++) {
@@ -296,16 +331,11 @@ function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
             html += "<tr>";
         }
 
-        html += `<td class="column${(i % 2) + 1}" id="word${i}">` + words[i] + "</td>";
+        html += `<td class="c${(i % 2) + 1}"`;
         if(shouldShowDefinitionsOnHtmlOutput()) {
-            html += `<script>
-                document.getElementById("word${i}").addEventListener("click", function() {
-                    document.body.style.overflow = "hidden";
-                    document.getElementById("definition-content").innerHTML = \`` +  generateDefinitionHtmlForMw(words[i]) + `\`;
-                    document.getElementById("definition-modal").style.display = "flex";
-                });
-            </script>`;
+            html += ` d="${generateDefinitionStringForMw(words[i])}"`;
         }
+        html += `>` + words[i] + "</td>";
 
         if (i % numColumns === numColumns - 1 || i === words.length - 1) {
             html += "</tr>";
@@ -313,7 +343,39 @@ function generateTablePageHTML(words, startIndex, numRowsPerPage, numColumns) {
     }
     html += `</table>`;
     html += `</div>`;
-    html += `<div class="page-break"></div>`;
+    html += `<div class="b"></div>`;
+    html = minifyHTML(html);
+    return html;
+}
+
+function generateClickListenerScript() {
+    let html = `<script>
+        document.getElementById("tablePages").addEventListener("click", function() {
+            const target = event.target;
+            if (target.tagName === 'TD') {
+                let html = '<div class="d1"><h2 class="d2">' + target.textContent + '</h2></div>';
+                let str = target.getAttribute('d');
+                let parts = str.split('|');
+                for (let i = 0; i < parts.length; ) {
+                    let partOfSpeech = parts[i];
+                    html += '<div class="d3">';
+                    html += '<h2 class="d4">' + partOfSpeech + '</h2>';
+                    html += '<ol class="d5">';
+                    let numDefs = parseInt(parts[i+1]);
+                    for (let j = 0; j < numDefs; j++) {
+                        let def = parts[i+2+j];
+                        html += '<li class="d6"><span class="d7">' + def + '</span></li>';
+                    }
+                    html += '</ol>';
+                    html += '</div>';
+                    i += 2 + numDefs;
+                }
+                document.body.style.overflow = "hidden";
+                document.getElementById("definition-content").innerHTML = html;
+                document.getElementById("definition-modal").style.display = "flex";
+            }
+        });
+    </script>`;
     html = minifyHTML(html);
     return html;
 }
@@ -322,19 +384,17 @@ function shouldShowDefinitionsOnHtmlOutput() {
     return document.getElementById("wordSourceDictionary").checked && document.getElementById('dictionaryOptionMerriamWebster').checked;
 }
 
-function generateDefinitionHtmlForMw(word) {
-    let html = `<div style="text-align: center;"><h2 style="font-size: 27px; margin: 5px 0 10px;">` + word + `</h2></div>`;
+function generateDefinitionStringForMw(word) {
+    let str = '';
     for (const [partOfSpeech, definitions] of Object.entries(merriamWebsterDefinitions[word])) {
-        html += `<div style="border: 1px solid #ccc; border-radius: 5px; margin: 10px 0; padding: 10px; box-shadow: 0 2px 2px rgba(0,0,0,0.1);">`;
-        html += `<h2 style="font-size: 23px; margin: 5px 0 10px;">` + partOfSpeech + `</h2>`
-        html += `<ol style="margin: 0; padding: 0 0 0 40px;">`;
+        str += partOfSpeech + '|';
+        str += definitions.length + '|';
         definitions.forEach(d => {
-            html += `<li style="margin-bottom: 5px; font-size: 17px; line-height: 1.5; font-weight: bold"><span style="font-weight: normal; font-size: 17px">` + d + `</span></li>`;
+            str += d + '|';
         });
-        html += `</ol>`;
-        html += `</div>`;
     }
-    return html;
+    str = str.substring(0, str.length - 1);
+    return str;
 }
 
 function generateDefinitionModalHTML() {
@@ -370,7 +430,6 @@ function generateScrollListenerScript(numPages) {
     js += "const pageHeight = page.offsetHeight;";
     js += "window.scrollTo(0, (pageNum - 1) * (pageHeight + 95.5));";
     js += "}";
-    js = minifyHTML(js);
     return js;
 }
 
