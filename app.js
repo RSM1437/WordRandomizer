@@ -418,7 +418,7 @@ function generateDefinitionModalHTML() {
 function generateScrollListenerScript(numPages) {
     let js = "window.addEventListener('scroll', function() {";
     js += "const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;";
-    js += "const page = document.getElementsByClassName(\"page\")[0];";
+    js += "const page = document.getElementsByClassName(\"g\")[0];";
     js += "const pageHeight = page.offsetHeight;";
     js += `let pageNum = Math.min(${numPages} - 1, Math.floor(scrollTop / pageHeight));`;
     js += "const pageNumberElement = document.querySelector('.page-number');";
@@ -426,7 +426,7 @@ function generateScrollListenerScript(numPages) {
     js += "});";
 
     js += "function updatePageNumber(pageNum) {";
-    js += "const page = document.getElementsByClassName(\"page\")[0];";
+    js += "const page = document.getElementsByClassName(\"g\")[0];";
     js += "const pageHeight = page.offsetHeight;";
     js += "window.scrollTo(0, (pageNum - 1) * (pageHeight + 95.5));";
     js += "}";
