@@ -617,27 +617,35 @@ function downloadWordsFromDictionary() {
 }
 
 function downloadWordsFromMerriamWebster() {
-    var dispRes = function() {
-        document.getElementById("DictionaryDownloadSuccessMsg").innerText = "Successfully imported " + filteredDictionaryWords.length.toLocaleString() + " words from Merriam-Webster!";
+    var dispRes = function(numWords) {
+        document.getElementById("DictionaryDownloadSuccessMsg").innerText = "Successfully imported " + numWords.toLocaleString() + " words from Merriam-Webster!";
         document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'block';
         document.getElementById('nextBtn').style.display = "block";
         document.getElementById("dictionaryImportButton").disabled = false;
     }
-    var progBar = document.getElementById("dictionaryDownloadProgress");
+    var progBar = document.getElementById("dictionaryDownloadProgressBar");
+    var updateProgress = function(progressPct) {
+        roundedProgressPct = Math.floor(progressPct);
+        roundedProgressPct = Math.min(Math.max(roundedProgressPct, 0), 100);
+        progBar.style.width = roundedProgressPct + "%";
+        progBar.innerHTML = roundedProgressPct + "%";
+    };
     document.getElementById("dictionaryImportButton").disabled = true;
     document.getElementById("DictionaryDownloadSuccessMsg").style.display = 'none';
     document.getElementById('nextBtn').style.display = "none";
     downloadInProgress = true;
     progBar.style.display = "block";
+    updateProgress(1);
     if(merriamWebsterWords.length > 0) {
         downloadInProgress = true;
         new Promise((resolve) => {
-            filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
+            filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress))).then((newWords) => {
                 resolve(newWords);
             });
-        }).then((newWords) => {
-            filteredDictionaryWords = newWords;
-            dispRes();
+        }, (newWords) => {
+            filteredDictionaryWords = newWords || [];
+            updateProgress(100);
+            dispRes(filteredDictionaryWords.length);
             downloadInProgress = false;
             progBar.style.display = "none";
         });
@@ -651,6 +659,10 @@ function downloadWordsFromMerriamWebster() {
         downloadInProgress = false;
         document.getElementById('dictionaryImportButton').disabled = false;
     };
+    const wordFetchTotalProgress = 80;
+    var onWordFetchProgress = function(progressPct) {
+        updateProgress(wordFetchTotalProgress * (progressPct / 100));
+    }
     var onComplete = function(definitionsPerWord) {
         for (const [word, defsPerPartOfSpeech] of Object.entries(definitionsPerWord)) {
             merriamWebsterWords.push(word);
@@ -662,41 +674,42 @@ function downloadWordsFromMerriamWebster() {
                 });
             }
         }
+        updateProgress(wordFetchTotalProgress);
 
-        filterDictionaryWords(merriamWebsterWords, (progress) => {}, (newWords) => {
-            filteredDictionaryWords = newWords;
-            dispRes();
+        filterDictionaryWords(merriamWebsterWords, (progress) => {
+            var filterTotalProgress = 100 - wordFetchTotalProgress;
+            updateProgress((filterTotalProgress * (progress / 100)) + wordFetchTotalProgress);
+        }, (newWords) => {
+            filteredDictionaryWords = newWords || [];
+            updateProgress(100);
+            dispRes(filteredDictionaryWords.length);
             downloadInProgress = false;
             progBar.style.display = "none";
         });
     };
-    getWordsFromMerriamWebsterLambdaVersion(1000).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
+    getWordsFromMerriamWebsterLambdaVersion(2000, onWordFetchProgress).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
-function filterDictionaryWords(words, progressCallback, completeCallback) {
-    var worker = new Worker(getScriptPath(function(){
-        self.postMessage({});
-    }));
-    worker.addEventListener('message', function(e) {
-        var includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
-        var includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
-        var includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
-        var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
-        var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
-        var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
-        var includeProfanity = document.getElementById('wordFilterOptionIncludeBadWords').checked;
-        var wordFilter = new WordFilter();
-        wordFilter.includeHyphenated = includeHyphenated;
-        wordFilter.includeProper = includeProper;
-        wordFilter.includePhrases = includePhrases;
-        wordFilter.includePrefixes = includePrefixes;
-        wordFilter.includeSuffixes = includeSuffixes;
-        wordFilter.includeAcronyms = includeAcronyms;
-        wordFilter.includeProfanity = includeProfanity;
-        completeCallback(wordFilter.filter(words, progressCallback));
-        worker.terminate();
-    }, false);
-    worker.postMessage({});
+async function filterDictionaryWords(words, progressCallback, completeCallback) {
+    var includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
+    var includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
+    var includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
+    var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
+    var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
+    var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
+    var includeProfanity = document.getElementById('wordFilterOptionIncludeBadWords').checked;
+    var wordFilter = new WordFilter();
+    wordFilter.includeHyphenated = includeHyphenated;
+    wordFilter.includeProper = includeProper;
+    wordFilter.includePhrases = includePhrases;
+    wordFilter.includePrefixes = includePrefixes;
+    wordFilter.includeSuffixes = includeSuffixes;
+    wordFilter.includeAcronyms = includeAcronyms;
+    wordFilter.includeProfanity = includeProfanity;
+    var words = await wordFilter.filter(words, progressCallback);
+    if(completeCallback) {
+        completeCallback(words);
+    }
 }
 
 function downloadWordsFromOxfordEnglishDictionary() {
@@ -716,7 +729,7 @@ function downloadWordsFromOxfordEnglishDictionary() {
         downloadMsgElement.style.display = 'none';
         document.getElementById('dictionaryImportButton').disabled = true;
         new Promise((resolve) => {
-            filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}, (newWords) => {
+            filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}).then((newWords) => {
                 resolve(newWords);
             });
         }).then((newWords) => {
@@ -761,7 +774,7 @@ function downloadWordsFromOxfordEnglishDictionary() {
             updateProgress(100);
             downloadMsgElement.style.display = 'block';
             document.getElementById('nextBtn').style.display = "block";
-            filterDictionaryWords(oedWords, (progress) => {}, (newWords) => {
+            filterDictionaryWords(oedWords, (progress) => {}).then((newWords) => {
                 filteredDictionaryWords = newWords;
                 downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
                 downloadInProgress = false;
@@ -860,15 +873,16 @@ function getWordsFromOedStartingWith(letter, username, password, retries, onRequ
     });
 }
 
-function getWordsFromMerriamWebsterLambdaVersion(limit = 10_000, startKey = null, total_limit = null, current_total = 0) {
+function getWordsFromMerriamWebsterLambdaVersion(limitPerCall = 10_000, onProgress = null, startKey = null, totalLimit = null, currTotal = 0) {
     const params = {
         FunctionName: 'getMerriamWebsterWordsAndDefintitions',
         InvocationType: 'RequestResponse',
         Payload:JSON.stringify({
-            limit: limit,
+            limit: limitPerCall,
             start_key: startKey
         }),
     };
+    const target = totalLimit ? ((totalLimit / limitPerCall) + 1) * limitPerCall : 350_000;
     return new Promise((resolve, reject) => {
         lambda.invoke(params, function(err, data) {
             if(err) {
@@ -878,14 +892,17 @@ function getWordsFromMerriamWebsterLambdaVersion(limit = 10_000, startKey = null
                 let responsePayload = JSON.parse(data.Payload);
                 if(responsePayload.body != undefined) {
                     let words = JSON.parse(responsePayload.body);
-                    current_total += Object.keys(words).length;
-                    if (total_limit && current_total > total_limit) {
+                    currTotal += Object.keys(words).length;
+                    if (onProgress) {
+                        onProgress(currTotal / target * 100);
+                    }
+                    if (totalLimit && currTotal >= totalLimit) {
                         resolve(words);
                     }
 
                     let nextStartKey = responsePayload.start_key;
                     if (nextStartKey) {
-                        getWordsFromMerriamWebsterLambdaVersion(limit, nextStartKey, total_limit, current_total).then((nextWords) => {
+                        getWordsFromMerriamWebsterLambdaVersion(limitPerCall, onProgress, nextStartKey, totalLimit, currTotal).then((nextWords) => {
                             Object.assign(words, nextWords);
                             resolve(words);
                         }).catch((error) => {

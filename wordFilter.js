@@ -10,17 +10,37 @@ class WordFilter {
         this.includeProfanity = false;
     }
 
-    filter(words, progressCallback) {
+    async filter(words, progressCallback) {
+        const batchSize = 1000;
         let filteredWords = [];
         let wordsProcessed = 0;
-        words.forEach(word => {
-            if(this.shouldAdd(word)) {
+      
+        return new Promise((resolve) => {
+          const processBatch = async (startIndex) => {
+            const endIndex = Math.min(startIndex + batchSize, words.length);
+            const batchWords = words.slice(startIndex, endIndex);
+      
+            for (const word of batchWords) {
+              if (this.shouldAdd(word)) {
                 filteredWords.push(word);
+              }
+              wordsProcessed++;
             }
-            wordsProcessed++;
-            progressCallback(wordsProcessed / words.length);
+      
+            progressCallback(wordsProcessed / words.length * 100);
+      
+            if (endIndex < words.length) {
+              // Delay between processing batches to avoid blocking the UI
+              setTimeout(() => {
+                processBatch(endIndex);
+              }, 0);
+            } else {
+              resolve(filteredWords);
+            }
+          };
+      
+          processBatch(0);
         });
-        return filteredWords;
     }
 
     shouldAdd(word) {
