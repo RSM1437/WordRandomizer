@@ -638,11 +638,7 @@ function downloadWordsFromMerriamWebster() {
     updateProgress(1);
     if(merriamWebsterWords.length > 0) {
         downloadInProgress = true;
-        new Promise((resolve) => {
-            filterDictionaryWords(merriamWebsterWords, (progress) => updateProgress(Math.round(progress))).then((newWords) => {
-                resolve(newWords);
-            });
-        }, (newWords) => {
+        filterDictionaryWords(merriamWebsterWords, updateProgress).then((newWords) => {
             filteredDictionaryWords = newWords || [];
             updateProgress(100);
             dispRes(filteredDictionaryWords.length);
@@ -679,7 +675,7 @@ function downloadWordsFromMerriamWebster() {
         filterDictionaryWords(merriamWebsterWords, (progress) => {
             var filterTotalProgress = 100 - wordFetchTotalProgress;
             updateProgress((filterTotalProgress * (progress / 100)) + wordFetchTotalProgress);
-        }, (newWords) => {
+        }).then((newWords) => {
             filteredDictionaryWords = newWords || [];
             updateProgress(100);
             dispRes(filteredDictionaryWords.length);
@@ -690,26 +686,16 @@ function downloadWordsFromMerriamWebster() {
     getWordsFromMerriamWebsterLambdaVersion(2000, onWordFetchProgress).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
-async function filterDictionaryWords(words, progressCallback, completeCallback) {
-    var includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
-    var includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
-    var includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
-    var includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
-    var includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
-    var includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
-    var includeProfanity = document.getElementById('wordFilterOptionIncludeBadWords').checked;
+function filterDictionaryWords(words, progressCallback) {
     var wordFilter = new WordFilter();
-    wordFilter.includeHyphenated = includeHyphenated;
-    wordFilter.includeProper = includeProper;
-    wordFilter.includePhrases = includePhrases;
-    wordFilter.includePrefixes = includePrefixes;
-    wordFilter.includeSuffixes = includeSuffixes;
-    wordFilter.includeAcronyms = includeAcronyms;
-    wordFilter.includeProfanity = includeProfanity;
-    var words = await wordFilter.filter(words, progressCallback);
-    if(completeCallback) {
-        completeCallback(words);
-    }
+    wordFilter.includeHyphenated = document.getElementById('wordFilterOptionIncludeHyphenated').checked;
+    wordFilter.includeProper = document.getElementById('wordFilterOptionIncludeProper').checked;
+    wordFilter.includePhrases = document.getElementById('wordFilterOptionIncludePhrases').checked;
+    wordFilter.includePrefixes = document.getElementById('wordFilterOptionIncludePrefixes').checked;
+    wordFilter.includeSuffixes = document.getElementById('wordFilterOptionIncludeSuffixes').checked;
+    wordFilter.includeAcronyms = document.getElementById('wordFilterOptionIncludeAcronyms').checked;
+    wordFilter.includeProfanity = document.getElementById('wordFilterOptionIncludeBadWords').checked;
+    return wordFilter.filter(words, progressCallback);
 }
 
 function downloadWordsFromOxfordEnglishDictionary() {
@@ -728,11 +714,7 @@ function downloadWordsFromOxfordEnglishDictionary() {
         downloadInProgress = true;
         downloadMsgElement.style.display = 'none';
         document.getElementById('dictionaryImportButton').disabled = true;
-        new Promise((resolve) => {
-            filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}).then((newWords) => {
-                resolve(newWords);
-            });
-        }).then((newWords) => {
+        filterDictionaryWords(oedWords, (progress) => {updateProgress(Math.round(progress * 100))}).then((newWords) => {
             filteredDictionaryWords = newWords;
             downloadMsgElement.style.display = 'block';
             downloadMsgElement.innerHTML = 'Successfully imported ' + filteredDictionaryWords.length.toLocaleString() + ' words from the Oxford English Dictionary!';
@@ -740,7 +722,6 @@ function downloadWordsFromOxfordEnglishDictionary() {
             document.getElementById('dictionaryImportButton').disabled = false;
             document.getElementById('nextBtn').style.display = "block";
         });
-        return;
     }
 
     let username = document.getElementById('dictionaryUsername').value;
