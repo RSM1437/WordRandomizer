@@ -39,7 +39,7 @@ async function categorize(word, profanityFilter) {
     }
 
     if (isProperNoun(word)) {
-        return 'proper noun';
+        return 'proper';
     }
 
     if (isAcronym(word)) {
