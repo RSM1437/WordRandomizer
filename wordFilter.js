@@ -18,16 +18,15 @@ class WordFilter {
         return new Promise((resolve) => {
           const processBatch = async (startIndex) => {
             const endIndex = Math.min(startIndex + batchSize, words.length);
-            const batchWords = words.slice(startIndex, endIndex);
-      
-            for (const word of batchWords) {
+            for (let i = startIndex; i < endIndex; i++) {
+              const word = words[i];
               if (this.shouldAdd(word)) {
                 filteredWords.push(word);
               }
               wordsProcessed++;
             }
       
-            progressCallback(wordsProcessed / words.length * 100);
+            progressCallback((wordsProcessed / words.length) * 100);
       
             if (endIndex < words.length) {
               // Delay between processing batches to avoid blocking the UI
