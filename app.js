@@ -675,7 +675,10 @@ function downloadWordsFromMerriamWebster() {
         }
         updateProgress(wordFetchTotalProgress);
 
-        categorizeAllDictionaryWords(words).then((allWords) => {
+        categorizeAllDictionaryWords(words, (progress) => {
+            var catTotalProgress = 99 - wordFetchTotalProgress;
+            updateProgress((catTotalProgress * (progress / 100)) + wordFetchTotalProgress);
+        }).then((allWords) => {
             updateProgress(99);
 
             // allWords contains an array of objects, instead combine them into a single object
@@ -699,14 +702,22 @@ function downloadWordsFromMerriamWebster() {
     getWordsFromMerriamWebsterLambdaVersion(10000, onWordFetchProgress).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
-function categorizeAllDictionaryWords(words) {
+function categorizeAllDictionaryWords(words, onProgress) {
     // categorize words in chunks of 1000 in parallel
     const chunkSize = 1000;
     const numChunks = Math.ceil(words.length / chunkSize);
     const promises = [];
+    var numChunksCompleted = 0;
     for (let i = 0; i < numChunks; i++) {
         const chunk = words.slice(i * chunkSize, (i + 1) * chunkSize);
-        promises.push(categorizeDictionaryWords(chunk));
+        var p = categorizeDictionaryWords(chunk);
+        p.then(() => {
+            numChunksCompleted++;
+            if (onProgress) {
+                onProgress(numChunksCompleted / numChunks * 100);
+            }
+        });
+        promises.push(p);
     }
     return Promise.all(promises);
 }
