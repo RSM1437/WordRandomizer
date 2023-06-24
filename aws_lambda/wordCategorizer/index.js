@@ -17,32 +17,35 @@ exports.handler = async (event, context) => {
     return response;
 }
 
-async function categorize(word, profanityFilter) {
-    if (profanityFilter.isProfane(word)) {
-        return 'profanity';
+async function categorize(wordOrPhrase, profanityFilter) {
+    var words = wordOrPhrase.split(' ');
+    for(let i = 0; i < words.length; i++) {
+        if(profanityFilter.isProfane(words[i])) {
+            return 'profanity';
+        }
     }
 
-    if (word.startsWith('-')) {
+    if (wordOrPhrase.startsWith('-')) {
         return 'suffix';
     }
 
-    if (word.endsWith('-')) {
+    if (wordOrPhrase.endsWith('-')) {
         return 'prefix';
     }
 
-    if (word.includes(' ')) {
+    if (wordOrPhrase.includes(' ')) {
         return 'phrase';
     }
 
-    if (word.includes('-')) {
+    if (wordOrPhrase.includes('-')) {
         return 'hyphenated';
     }
 
-    if (isProperNoun(word)) {
+    if (isProperNoun(wordOrPhrase)) {
         return 'proper';
     }
 
-    if (isAcronym(word)) {
+    if (isAcronym(wordOrPhrase)) {
         return 'acronym';
     }
     
