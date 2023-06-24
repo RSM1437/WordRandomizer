@@ -388,7 +388,7 @@ function generateDefinitionStringForMw(word) {
     let str = '';
     for (const [partOfSpeech, definitions] of Object.entries(merriamWebsterDefinitions[word])) {
         str += partOfSpeech + '|';
-        str += definitions.length + '|';
+        str += definitions.size + '|';
         definitions.forEach(d => {
             str += d + '|';
         });
@@ -667,9 +667,11 @@ function downloadWordsFromMerriamWebster() {
             words.push(word);
             merriamWebsterDefinitions[word] = {};
             for (const [partOfSpeech, defs] of Object.entries(defsPerPartOfSpeech)) {
-                merriamWebsterDefinitions[word][partOfSpeech] = [];
+                merriamWebsterDefinitions[word][partOfSpeech] = new Set();
                 defs.forEach(definition => {
-                    merriamWebsterDefinitions[word][partOfSpeech].push(definition);
+                    if (definition.length > 0) {
+                        merriamWebsterDefinitions[word][partOfSpeech].add(definition);
+                    }
                 });
             }
         }
