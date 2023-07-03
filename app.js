@@ -701,7 +701,7 @@ function downloadWordsFromMerriamWebster() {
             progBar.style.display = "none";
         });
     };
-    getWordsFromMerriamWebsterLambdaVersion(10000, onWordFetchProgress).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
+    getWordsFromMerriamWebsterLambdaVersion(10, onWordFetchProgress, null, 30).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
 function categorizeAllDictionaryWords(words, onProgress) {
@@ -1003,7 +1003,8 @@ function getWordsFromMerriamWebsterLambdaVersion(limitPerCall = 10_000, onProgre
             else {
                 let responsePayload = JSON.parse(data.Payload);
                 if(responsePayload.body != undefined) {
-                    let words = JSON.parse(responsePayload.body);
+                    let responseBody = JSON.parse(responsePayload.body);
+                    let words = responseBody.definitions;
                     currTotal += Object.keys(words).length;
                     if (onProgress) {
                         onProgress(currTotal / target * 100);
@@ -1011,7 +1012,7 @@ function getWordsFromMerriamWebsterLambdaVersion(limitPerCall = 10_000, onProgre
                     if (totalLimit && currTotal >= totalLimit) {
                         resolve(words);
                     } else {
-                        let nextStartKey = responsePayload.start_key;
+                        let nextStartKey = responseBody.start_key;
                         if (nextStartKey) {
                             getWordsFromMerriamWebsterLambdaVersion(limitPerCall, onProgress, nextStartKey, totalLimit, currTotal).then((nextWords) => {
                                 Object.assign(words, nextWords);
