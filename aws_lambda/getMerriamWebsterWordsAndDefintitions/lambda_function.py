@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     # Scan the DynamoDB table with pagination parameters
     scan_args = {'TableName': table_name, 'Limit': limit}
     if start_key:
-        scan_args['ExclusiveStartKey'] = start_key
+        scan_args['ExclusiveStartKey'] = {'word': {'S': start_key}}
     response = db_client.scan(**scan_args)
 
     # Build the response object with the paginated data
@@ -29,6 +29,8 @@ def lambda_handler(event, context):
         definitions[word] = json.loads(definitions_json)
 
     next_start_key = response.get('LastEvaluatedKey', None)
+    if next_start_key:
+        next_start_key = next_start_key['word']['S']
 
     response_body = {'definitions': definitions}
 
