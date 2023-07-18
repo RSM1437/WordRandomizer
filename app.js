@@ -701,7 +701,7 @@ function downloadWordsFromMerriamWebster() {
             progBar.style.display = "none";
         });
     };
-    getWordsFromMerriamWebsterLambdaVersion(10, onWordFetchProgress, null, 30).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
+    getWordsFromMerriamWebsterLambdaVersion(1000, onWordFetchProgress).then(onComplete, onOverallError).catch(error => alert('Unexpected error: ' + error.message));
 }
 
 function categorizeAllDictionaryWords(words, onProgress) {
